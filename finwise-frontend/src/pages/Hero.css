@@ -1,0 +1,115 @@
+.hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.hero-text{
+    text-align: center;
+    position: absolute;
+    top: 0%;
+}
+.logo-container{
+position: fixed;
+
+}
+
+
+.hero-text :nth-child(1){
+      background: linear-gradient(90deg, #000000, #000000,transparent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+
+    position: relative;
+
+    right: 80%;
+    font-size: 8rem;
+
+}
+
+.hero-text :nth-child(2){
+          background: linear-gradient(90deg, transparent, #000000 95%,#000000);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+    position: relative;
+  
+    left: 150%;
+      font-size: 8rem;
+
+}
+
+.get-startedbtn{
+  position: absolute;
+  top: 80%;
+  left: 5%;
+  padding: 1rem 2rem;
+  background-color: #000000;
+  color: white;
+  font-size: 1.2rem;
+  width: 250px;
+  text-align: center;
+  height: auto;
+  border-radius: 20px;
+  cursor: pointer;
+
+}
+
+.container{
+  position: absolute;
+  top: 30%;
+  left: 30%;
+}
+
+
+
+/* Mobile devices */
+@media (max-width: 768px) {
+  .hero-text {
+    font-size: 1rem;
+    left: 10%;
+    top: 25%;
+  }
+
+  .hero-text :nth-child(1) {
+    bottom: 50%;
+
+  }
+
+  .hero-text :nth-child(2) {
+    top: 50%;
+
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 400px) {
+  .hero-section {
+    min-height: 80vh;
+  }
+
+  .hero-text {
+    font-size: 1rem;
+    left: 5%;
+    top: 30%;
+  }
+
+  .logo-container {
+    position: fixed;
+    width: 100%;
+    padding: 1rem;
+  }
+}
+
+/* Tablets and larger */
+@media (min-width: 1024px) {
+  .hero-text {
+    font-size: 3.5rem;
+  }
+}
