@@ -47,23 +47,43 @@ To encourage consistency, FinWise AI rewards users for maintaining saving streak
 
 ## Screenshots 
 ### The home page
-<img width="1919" height="924" alt="image" src="https://github.com/user-attachments/assets/5a6a4621-2574-4bda-aa7c-9eb5d46d3307" />
+<img width="1902" height="933" alt="image" src="https://github.com/user-attachments/assets/0c5c8ffd-06a0-46ff-a273-3337ed55db52" />
 
-### wallet connection 
-<img width="1887" height="864" alt="image" src="https://github.com/user-attachments/assets/8c2b51f3-977c-4132-aa4e-5d07b8aa6cf8" />
 
-### Balance showcase 
-<img width="1919" height="924" alt="image" src="https://github.com/user-attachments/assets/23283753-5c34-4b55-9b54-4e432eeba9a6" />
+### wallet connection with avaiable option to sign in with google 
+<img width="1918" height="929" alt="image" src="https://github.com/user-attachments/assets/149b1ef3-180f-4b11-b68a-eb45b9e8ee44" />
 
-### sending a transaction 
-<img width="1919" height="928" alt="image" src="https://github.com/user-attachments/assets/c2ba6612-4f51-4b36-9ef0-1ea09da4809e" />
+### Connect with google option 
+<img width="1919" height="928" alt="image" src="https://github.com/user-attachments/assets/46d0b786-268b-4886-80e4-f7da2d07bf84" />
+
+### Balance showcase and send a XLM option 
+<img width="1919" height="929" alt="image" src="https://github.com/user-attachments/assets/c32226a7-2110-4c77-ac31-c2706492890a" />
+
+### transaction history showcase
+<img width="1919" height="932" alt="image" src="https://github.com/user-attachments/assets/07f15af3-3142-4e5b-8f71-d94f6eff7fb5" />
+
+### AI Financial Analysis and advisor 
+<img width="1902" height="927" alt="image" src="https://github.com/user-attachments/assets/67c35e66-1da2-46d4-a48c-37d1b2988180" />
+
+### dashboard 
+<img width="1896" height="931" alt="image" src="https://github.com/user-attachments/assets/08d0166d-7478-44ac-9861-0bdb2207a5c2" />
+
+### piggy bank future to incentivize disciplined saving habits.
+<img width="1900" height="923" alt="image" src="https://github.com/user-attachments/assets/b174f393-496e-42b1-a634-8543e31c29c3" />
+
+### about section which explains about the platform 
+<img width="1919" height="928" alt="image" src="https://github.com/user-attachments/assets/3f77b8d1-3f16-4100-acc5-863be33fa4ca" />
+
+
+## demo video is  attached with other folder
 
 ## Project Structure
 
 ```text
-├── frontend/           # React.js application
-├── backend/            # API and AI logic
-│   └── contracts/      # Soroban Smart Contracts (Rust)
-└── README.md           # Project documentation
+├── finwise-frontend/       # React.js application
+├── finwise-backend/        # API and AI logic
+│── finwise-contracts/      # Soroban Smart Contracts (Rust)
+└── README.md               # Project documentation
+
 
 
