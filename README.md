@@ -75,7 +75,11 @@ To encourage consistency, FinWise AI rewards users for maintaining saving streak
 <img width="1919" height="928" alt="image" src="https://github.com/user-attachments/assets/3f77b8d1-3f16-4100-acc5-863be33fa4ca" />
 
 
-## demo video is  attached with other folder
+## demo video 
+
+
+https://github.com/user-attachments/assets/935947a7-8f41-4184-9537-35a334b00502
+
 
 ## Project Structure
 
