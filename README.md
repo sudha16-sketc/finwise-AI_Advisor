@@ -76,9 +76,33 @@ To encourage consistency, FinWise AI rewards users for maintaining saving streak
 
 
 ## demo video 
-
-
 https://github.com/user-attachments/assets/935947a7-8f41-4184-9537-35a334b00502
+
+## Live Demo
+https://stellar-journey-to-mastery-5evyy94io-sudha16-sketcs-projects.vercel.app
+
+## Mobile Responsive View
+
+<img width="754" height="932" alt="image" src="https://github.com/user-attachments/assets/f0bc2a5e-1dd8-4173-9589-897506bda4f0" />
+<img width="795" height="932" alt="image" src="https://github.com/user-attachments/assets/963e6423-f13c-4ce7-8f8a-2cd8b6749b08" />
+<img width="790" height="931" alt="image" src="https://github.com/user-attachments/assets/404c74b6-d942-4814-91db-d3dc18678fb2" />
+<img width="841" height="934" alt="image" src="https://github.com/user-attachments/assets/56fec22a-cd32-4858-984b-00dbed29b4b5" />
+## CI/CD Status
+
+![CI](https://github.com/sudha16-sketc/stellar-journey-to-mastery/actions/workflows/create main.yml/badge.svg)
+
+
+## Smart Contract
+
+Network: Stellar Testnet  
+Contract ID: CCQ62QMQSDDXMBD5PFQD4HJODSLMEFHQVCAQEWLEI5YS3T7H7X24YSBK
+Transaction hash:fe0bd61f5fe0b580d9e13147bcb3b870675fd95f198f03e2a31ff38497a830b6
+
+## Token Details
+
+This project uses native XLM on Stellar Testnet.
+No custom token deployed.
+
 
 
 ## Project Structure
