@@ -11,7 +11,7 @@ import { finwiseApi } from "../services/api";
 import RiskBadge from "../components/RiskBadge";
 import BudgetChart from "../components/BudgetChart";
 import SavingsChart from "../components/SavingsChart";
-import Txhistory from "../components/Txhistory";
+import Txhistory from "./components/Txhistory";
 import { getStats } from "../services/stellarPiggy";
 
 function StatCard({ Icon, label, value, sub, color }) {

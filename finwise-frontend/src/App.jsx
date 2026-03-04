@@ -8,7 +8,7 @@ import PiggyBank from "./pages/PiggyBank";
 import Signin from "./pages/Signin";
 import About from "./pages/About";
 import SendTransaction from "./components/SendTransaction";
-import TxHistory from "../components/TxHistory";
+import TxHistory from "./components/TxHistory";
 
 export default function App() {
   const [publicKey, setPublicKey] = useState(
