@@ -7,9 +7,9 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use mongodb::bson::{doc, oid::ObjectId};
 use bcrypt::{hash, verify, DEFAULT_COST};
-
 use std::env;
 use dotenvy::dotenv;
+use reqwest::Client;
 
 mod routes;
 mod stellar;
@@ -109,23 +109,21 @@ async fn main() -> std::io::Result<()> {
             .route("/api/login", web::post().to(login))
             .route("/api/logout", web::post().to(logout))
             .route("/api/check-auth", web::get().to(check_auth))
-            // .service(
-            //     web::scope("/api")
-            //         .route("/balance/{address}", web::get().to(routes::get_balance))
-            //         .route("/transactions/{address}", web::get().to(routes::get_transactions))
-            //         .route("/send", web::post().to(routes::send_transaction))
-            // )
-
+            .service(
+                web::scope("/api")
+                    .route("/balance/{address}", web::get().to(routes::routes::get_balance))
+                    .route("/transactions/{address}", web::get().to(routes::routes::get_transactions))
+                    .route("/send", web::post().to(routes::routes::send_transaction))
+                    .route("/profile", web::get().to(routes::profile::get_profile))  
+                    .route("/analyze", web::post().to(routes::analyze::analyze))      
+                    .route("/piggy/deposit", web::post().to(routes::piggy::deposit))   
+                    .route("/piggy/stats/{user_id}", web::get().to(routes::piggy::get_stats))
+            )
             /* =============================
                EXISTING ROUTES
             ============================== */
 
             .route("/health", web::get().to(routes::health::health_check))
-            .route("/api/analyze", web::post().to(routes::analyze::analyze))
-            .route("/api/profile/{user_id}", web::get().to(routes::profile::get_profile))
-            .route("/api/piggy/deposit", web::post().to(routes::piggy::deposit))
-            .route("/api/piggy/stats/{user_id}", web::get().to(routes::piggy::get_stats))
-
             .route("/auth/google", web::get().to(google_login))
             .route("/auth/google/callback", web::get().to(google_callback))
             
@@ -262,22 +260,90 @@ async fn google_login() -> HttpResponse {
         .finish()
 }
 
+
+
 async fn google_callback(
+    db: web::Data<Database>,
+    session: actix_session::Session,
     query: web::Query<std::collections::HashMap<String, String>>
 ) -> HttpResponse {
-    println!("Full Query: {:?}", query);
 
-    if let Some(error) = query.get("error") {
-        return HttpResponse::BadRequest()
-            .body(format!("Google returned error: {}", error));
-    }
+    let code = match query.get("code") {
+        Some(c) => c,
+        None => return HttpResponse::BadRequest().body("No code found")
+    };
 
-    if let Some(code) = query.get("code") {
-        println!("Authorization Code: {}", code);
+    let client_id = env::var("GOOGLE_CLIENT_ID").unwrap();
+    let client_secret = env::var("GOOGLE_CLIENT_SECRET").unwrap();
 
-        return HttpResponse::Ok()
-            .body("Google login successful! Code received.");
-    }
+    let client = Client::new();
 
-    HttpResponse::BadRequest().body("No code found")
+    // Exchange code for token
+    let token_res = client
+        .post("https://oauth2.googleapis.com/token")
+        .form(&[
+            ("code", code),
+            ("client_id", &client_id),
+            ("client_secret", &client_secret),
+            ("redirect_uri", &"http://localhost:8080/auth/google/callback".to_string()),
+            ("grant_type", &"authorization_code".to_string()),
+        ])
+        .send()
+        .await
+        .unwrap()
+        .json::<serde_json::Value>()
+        .await
+        .unwrap();
+
+    let access_token = token_res["access_token"]
+        .as_str()
+        .unwrap();
+
+    // Get user info
+    let user_info = client
+        .get("https://www.googleapis.com/oauth2/v2/userinfo")
+        .bearer_auth(access_token)
+        .send()
+        .await
+        .unwrap()
+        .json::<serde_json::Value>()
+        .await
+        .unwrap();
+
+    let email = user_info["email"].as_str().unwrap().to_string();
+
+    // 🔥 Derive username from email
+    let username = email.split('@').next().unwrap().to_string();
+
+    let users = db.collection::<User>("users");
+
+    let existing = users
+        .find_one(doc! { "email": &email })
+        .await
+        .unwrap();
+
+    let user_id = if let Some(user) = existing {
+        user.id.unwrap()
+    } else {
+        let new_user = User {
+            id: None,
+            username,
+            email: email.clone(),
+            password: "".into(), // no password for Google users
+            wallet_address: None,
+            created_at: Utc::now(),
+        };
+
+        let insert = users.insert_one(new_user).await.unwrap();
+        insert.inserted_id.as_object_id().unwrap()
+    };
+
+    session.insert("user_id", user_id).unwrap();
+
+    HttpResponse::Found()
+        .append_header(("Location", "http://localhost:3000/dashboard"))
+        .finish()
 }
+
+
+

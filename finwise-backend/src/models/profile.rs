@@ -13,6 +13,15 @@ pub struct ProfileDocument {
     pub latest_advice: Option<FinancialAdvice>,
     pub total_analyses: u32,
     pub updated_at: DateTime<Utc>,
+    // ↓ Add #[serde(default)] so missing fields deserialize as 0 instead of erroring
+    #[serde(default)]
+    pub total_saved: f64,
+    #[serde(default)]
+    pub current_streak: u32,
+    #[serde(default)]
+    pub longest_streak: u32,
+    #[serde(default)]
+    pub reward_points: u32,
 }
 
 #[derive(Debug, Serialize)]

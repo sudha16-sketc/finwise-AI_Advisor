@@ -11,12 +11,17 @@ import SendTransaction from "./components/SendTransaction";
 import TxHistory from "./components/TxHistory";
 
 export default function App() {
-  const [publicKey, setPublicKey] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [publicKey, setPublicKey] = useState(
+    () => localStorage.getItem("publicKey") || null,
+  );
+  const [isConnected, setIsConnected] = useState(
+    () => !!localStorage.getItem("publicKey"),
+  );
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
   const [transactionStatus, setTransactionStatus] = useState(null);
-const [transactionData, setTransactionData] = useState(null);
-const [balanceRefreshTrigger, setBalanceRefreshTrigger] = useState(0);  
+  const [transactionData, setTransactionData] = useState(null);
+  const [balanceRefreshTrigger, setBalanceRefreshTrigger] = useState(0);
+  
 
   const handleTransactionComplete = (result) => {
     console.log("Transaction completed:", result);
@@ -36,13 +41,29 @@ const [balanceRefreshTrigger, setBalanceRefreshTrigger] = useState(0);
     }, 5000);
   };
 
+  const handleSetPublicKey = (key) => {
+    setPublicKey(key);
+    if (key) {
+      localStorage.setItem("publicKey", key);
+    } else {
+      localStorage.removeItem("publicKey");
+    }
+  };
+
+  const handleSetIsConnected = (val) => {
+    setIsConnected(val);
+    if (!val) {
+      localStorage.removeItem("publicKey");
+    }
+  };
+
   const handleCloseStatus = () => {
-  setTransactionStatus(null);
-  setTransactionData(null);
-};
+    setTransactionStatus(null);
+    setTransactionData(null);
+  };
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col">
+      <div className=" min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-1">
           <Routes>
@@ -61,26 +82,42 @@ const [balanceRefreshTrigger, setBalanceRefreshTrigger] = useState(0);
             <Route
               path="/sendtransaction"
               element={
-<SendTransaction
-  publicKey={publicKey}
-  isConnected={isConnected}
-  onTransactionComplete={handleTransactionComplete}
-  refreshTrigger={balanceRefreshTrigger}
-/>
+                <SendTransaction
+                  publicKey={publicKey}
+                  isConnected={isConnected}
+                  onTransactionComplete={handleTransactionComplete}
+                  refreshTrigger={balanceRefreshTrigger}
+                  lastTx={transactionData?.hash}
+                  fee="0.00001 XLM"
+                  network="online"
+                  status={
+                    transactionStatus
+                      ? {
+                          type: transactionStatus,
+                          message: "Transaction successful",
+                        }
+                      : null
+                  }
+                />
               }
             />
-            <Route path="/txhistory" element={<TxHistory
+            <Route
+              path="/txhistory"
+              element={
+                <TxHistory
                   publicKey={publicKey}
                   refreshTrigger={historyRefreshTrigger}
-                />} />
+                />
+              }
+            />
             <Route
               path="/signin"
               element={
                 <Signin
                   publicKey={publicKey}
-                  setPublicKey={setPublicKey}
+                  setPublicKey={handleSetPublicKey}
                   isConnected={isConnected}
-                  setIsConnected={setIsConnected}
+                  setIsConnected={handleSetIsConnected}
                 />
               }
             />

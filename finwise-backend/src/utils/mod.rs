@@ -23,7 +23,11 @@ pub enum AppError {
 
     #[error("Not found: {0}")]
     NotFound(String),
+
+     #[error("Unauthorized: {0}")]
+    Unauthorized(String), 
 }
+
 
 impl actix_web::ResponseError for AppError {
     fn error_response(&self) -> HttpResponse {

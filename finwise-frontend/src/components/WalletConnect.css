@@ -5,7 +5,8 @@
 }
 .wallet-connect-container{
     margin: 0;
-
+    overflow: hidden;
+      height: 100vh;
 }
 .coverContainer{
     background: linear-gradient(135deg, #667eea 0%, #00218d 100%);
@@ -15,7 +16,6 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
     margin: 0;
     position: absolute;
     right: 0;

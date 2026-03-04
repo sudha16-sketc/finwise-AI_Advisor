@@ -6,6 +6,7 @@ const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30_000,
+  withCredentials: true,   
 })
 
 // Log every request in dev
@@ -30,12 +31,6 @@ export const finwiseApi = {
     return data
   },
 
-  /** GET /api/profile/:userId */
-  getProfile: async (userId) => {
-    const { data } = await api.get(`/api/profile/${userId}`)
-    return data
-  },
-
   /** POST /api/piggy/deposit */
   deposit: async (payload) => {
     const { data } = await api.post('/api/piggy/deposit', payload)
@@ -51,6 +46,18 @@ export const finwiseApi = {
   /** GET /health */
   health: async () => {
     const { data } = await api.get('/health')
+    return data
+  },
+
+  /** GET /api/profile */
+  getProfile: async () => {
+    const { data } = await api.get('/api/profile')
+    return data
+  },
+
+  /** GET /api/check-auth */   
+  checkAuth: async () => {
+    const { data } = await api.get('/api/check-auth')
     return data
   },
 }

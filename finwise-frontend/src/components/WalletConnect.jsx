@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
-import {connectWallet, isFreighterInstalled, formatAddress } from "../pages/stellarService";
+import {
+  connectWallet,
+  isFreighterInstalled,
+  formatAddress,
+} from "../pages/stellarService";
 import "./WalletConnect.css";
 import { connectWithWallet, wallets } from "../services/walletManager";
+
 
 function WalletConnect({
   publicKey,
@@ -20,7 +25,7 @@ function WalletConnect({
   const [status, setStatus] = useState("");
 
   useEffect(() => {
-     const checkFreighter = async () => {
+    const checkFreighter = async () => {
       const installed = await isFreighterInstalled();
       setFreighterInstalled(installed);
     };
@@ -47,7 +52,7 @@ function WalletConnect({
     }
   };
 
-   const handleConnectOther = async (walletId) => {
+  const handleConnectOther = async (walletId) => {
     setLoading(true);
     setError(null);
 
@@ -63,13 +68,11 @@ function WalletConnect({
     }
   };
 
-  
-
   const handleDisconnect = () => {
     setPublicKey(null);
     setIsConnected(false);
+    localStorage.removeItem("publicKey");
   };
-
   const handleSignup = async (e) => {
     e.preventDefault();
 
@@ -265,6 +268,7 @@ function WalletConnect({
         </div>
       </div>
       <div className="coverContainer">
+        
         <div className="wallet-connect-section">
           <h2 className="wallet-connect">Wallet Connection</h2>
 
@@ -281,20 +285,10 @@ function WalletConnect({
             </div>
           )}
 
-          {error && <div className="error-message"> {error}</div>}
+          {error && <div className="error-message">{error}</div>}
 
-          {!isConnected ? (
-            <div className="wallet-options">
-              
-                <button
-                  onClick={() => handleConnect()}
-                  className="connect-button"
-                >
-                  Connect frighter
-                </button>
-              
-            </div>
-          ) : (
+          {isConnected ? (
+            // Show connected info ONCE regardless of which wallet connected
             <div className="connected-info">
               <div className="wallet-address">
                 <span className="label">Connected:</span>
@@ -313,9 +307,12 @@ function WalletConnect({
                 Disconnect
               </button>
             </div>
-          )}
-          {!isConnected ? (
+          ) : (
+            // Show all connect options ONCE when not connected
             <div className="wallet-options">
+              <button onClick={handleConnect} className="connect-button">
+                Connect Freighter
+              </button>
               {wallets.map((wallet) => (
                 <button
                   key={wallet.id}
@@ -325,25 +322,6 @@ function WalletConnect({
                   Connect {wallet.name}
                 </button>
               ))}
-            </div>
-          ) : (
-            <div className="connected-info">
-              <div className="wallet-address">
-                <span className="label">Connected:</span>
-                <span className="address" title={publicKey}>
-                  {formatAddress(publicKey)}
-                </span>
-                <button
-                  onClick={() => navigator.clipboard.writeText(publicKey)}
-                  className="copy-button"
-                  title="Copy full address"
-                >
-                  Copy
-                </button>
-              </div>
-              <button onClick={handleDisconnect} className="disconnect-button">
-                Disconnect
-              </button>
             </div>
           )}
         </div>

@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { 
-  sendTransaction, 
+import {
+  sendTransaction,
   isValidAddress,
   fetchBalance,
-  fetchBalanceDirect 
+  fetchBalanceDirect,
 } from "../pages/stellarService";
 import "../App.css";
 
-function SendTransaction({ publicKey, onTransactionComplete, isConnected, refreshTrigger }) {
+function SendTransaction({
+  publicKey,
+  onTransactionComplete,
+  isConnected,
+  refreshTrigger,
+  lastTx,
+  fee,
+  network,
+  status,
+}) {
   const [destination, setDestination] = useState("");
   const [amount, setAmount] = useState("");
   const [sending, setSending] = useState(false);
@@ -79,8 +88,6 @@ function SendTransaction({ publicKey, onTransactionComplete, isConnected, refres
     }
   };
 
-
-
   const loadBalance = async () => {
     if (!publicKey) return;
 
@@ -105,88 +112,121 @@ function SendTransaction({ publicKey, onTransactionComplete, isConnected, refres
     }
   };
 
-useEffect(() => {
-  loadBalance();
-}, [publicKey, refreshTrigger]);
+  useEffect(() => {
+    loadBalance();
+  }, [publicKey, refreshTrigger]);
 
   if (!publicKey) {
     return null;
   }
 
   return (
-    <div className="send-transaction-container">
-      <h2>Send XLM</h2>
+    <div className="flex gap-[20px]">
+      <div className="send-transaction-container">
+        <h1>Send XLM</h1>
 
-      {isConnected && (
-        <div className="dashboard-section wallet-info">
-          <div className="wallet-address">
-            <strong>Wallet:</strong> {publicKey.slice(0, 6)}...
-            {publicKey.slice(-6)}
+        {isConnected && (
+          <div className="dashboard-section wallet-info">
+            <div className="wallet-address">
+              <strong>Wallet:</strong> {publicKey.slice(0, 6)}...
+              {publicKey.slice(-6)}
+            </div>
+
+            <button onClick={() => navigator.clipboard.writeText(publicKey)}>
+              Copy
+            </button>
+
+            <div className="balance-display-container">
+              <h3>Balance</h3>
+
+              {balanceLoading ? (
+                <div>Loading balance...</div>
+              ) : balanceError ? (
+                <div> {balanceError}</div>
+              ) : (
+                <div className="balance-amount">
+                  <span className="amount">{balance || "0"}</span>
+                  <span className="currency"> XLM</span>
+                </div>
+              )}
+            </div>
           </div>
+        )}
 
-          <button onClick={() => navigator.clipboard.writeText(publicKey)}>
-            Copy
-          </button>
-
-          <div className="balance-display-container">
-            <h3>Balance</h3>
-
-            {balanceLoading ? (
-              <div>Loading balance...</div>
-            ) : balanceError ? (
-              <div> {balanceError}</div>
-            ) : (
-              <div className="balance-amount">
-                <span className="amount">{balance || "0"}</span>
-                <span className="currency"> XLM</span>
-              </div>
+        <form onSubmit={handleSubmit} className="transaction-form">
+          <div className="form-group">
+            <label htmlFor="destination">Destination Address:</label>
+            <input
+              id="destination"
+              type="text"
+              value={destination}
+              onChange={handleDestinationChange}
+              placeholder="G..."
+              disabled={sending}
+              className={validationError ? "input-error" : ""}
+            />
+            {validationError && (
+              <span className="validation-error">{validationError}</span>
             )}
           </div>
-        </div>
-      )}
 
-      <form onSubmit={handleSubmit} className="transaction-form">
-        <div className="form-group">
-          <label htmlFor="destination">Destination Address:</label>
-          <input
-            id="destination"
-            type="text"
-            value={destination}
-            onChange={handleDestinationChange}
-            placeholder="G..."
-            disabled={sending}
-            className={validationError ? "input-error" : ""}
-          />
-          {validationError && (
-            <span className="validation-error">{validationError}</span>
+          <div className="form-group">
+            <label htmlFor="amount">Amount (XLM):</label>
+            <input
+              id="amount"
+              type="text"
+              value={amount}
+              onChange={handleAmountChange}
+              placeholder="0.00"
+              disabled={sending}
+            />
+          </div>
+
+          {error && <div className="error-message">❌ {error}</div>}
+
+          <button
+            type="submit"
+            disabled={sending || !destination || !amount || !!validationError}
+            className="send-button"
+          >
+            {sending ? "⏳ Sending..." : " Send Transaction"}
+          </button>
+        </form>
+      </div>
+      <div className="TransactionSummaryCard">
+        <div className="summary-card">
+          <h3 className="summary-title">Transaction Summary</h3>
+
+          <div className="summary-item">
+            <span className="label">Balance:</span>
+            <span className="value">{balance ?? "Loading..."}</span>
+          </div>
+
+          <div className="summary-item">
+            <span className="label">Last Tx:</span>
+            <span className="value">
+              {lastTx ? `${lastTx.slice(0, 6)}...${lastTx.slice(-6)}` : "None"}
+            </span>
+          </div>
+
+          <div className="summary-item">
+            <span className="label">Fee Estimate:</span>
+            <span className="value">{fee ?? "0.00001 XLM"}</span>
+          </div>
+
+          <div className="summary-item">
+            <span className="label">Network:</span>
+            <span
+              className={`network ${network === "online" ? "online" : "offline"}`}
+            >
+              {network ?? "checking"}
+            </span>
+          </div>
+
+          {status && (
+            <div className={`status ${status.type}`}>{status.message}</div>
           )}
         </div>
-
-        <div className="form-group">
-          <label htmlFor="amount">Amount (XLM):</label>
-          <input
-            id="amount"
-            type="text"
-            value={amount}
-            onChange={handleAmountChange}
-            placeholder="0.00"
-            disabled={sending}
-          />
-        </div>
-
-        {error && <div className="error-message">❌ {error}</div>}
-
-        <button
-          type="submit"
-          disabled={sending || !destination || !amount || !!validationError}
-          className="send-button"
-        >
-          {sending ? "⏳ Sending..." : "📤 Send Transaction"}
-        </button>
-      </form>
-
-      <div className="transaction-info">
-        <small>💡 Make sure destination account exists on testnet</small>
       </div>
     </div>
   );

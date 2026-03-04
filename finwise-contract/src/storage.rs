@@ -1,46 +1,41 @@
-use soroban_sdk::{contracttype, Address};
+use soroban_sdk::{Address, Env};
+use crate::types::{DataKey, UserData, CommitmentData};
+use crate::errors::ContractError;
 
-/// Storage key enum — each variant represents a distinct key namespace
-#[contracttype]
-#[derive(Clone)]
-pub enum DataKey {
-    /// Piggy bank stats for a user
-    User(Address),
-    /// Savings goal commitment for a user
-    Commitment(Address),
+pub fn get_user(env: &Env, user: &Address) -> UserData {
+    env.storage()
+        .persistent()
+        .get(&DataKey::User(user.clone()))
+        .unwrap_or_default()
 }
 
-/// On-chain user savings state
-#[contracttype]
-#[derive(Clone, Debug)]
-pub struct UserData {
-    pub total_saved: i128,
-    pub current_streak: u32,
-    pub longest_streak: u32,
-    /// Unix timestamp (seconds) of the last deposit
-    pub last_deposit_timestamp: u64,
-    pub reward_points: u32,
+pub fn set_user(env: &Env, user: &Address, data: &UserData) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::User(user.clone()), data);
 }
 
-impl Default for UserData {
-    fn default() -> Self {
-        UserData {
-            total_saved: 0,
-            current_streak: 0,
-            longest_streak: 0,
-            last_deposit_timestamp: 0,
-            reward_points: 0,
-        }
-    }
+pub fn get_commitment(env: &Env, user: &Address) -> Option<CommitmentData> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::Commitment(user.clone()))
 }
 
-/// On-chain savings goal commitment
-#[contracttype]
-#[derive(Clone, Debug)]
-pub struct CommitmentData {
-    pub goal_amount: i128,
-    pub start_time: u64,
-    pub duration_days: u32,
-    pub amount_deposited: i128,
-    pub completed: bool,
+pub fn set_commitment(env: &Env, user: &Address, data: &CommitmentData) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::Commitment(user.clone()), data);
+}
+
+pub fn get_token(env: &Env) -> Result<Address, ContractError> {
+    env.storage()
+        .instance()
+        .get(&DataKey::Token)
+        .ok_or(ContractError::NotInitialized)
+}
+
+pub fn set_token(env: &Env, token: &Address) {
+    env.storage()
+        .instance()
+        .set(&DataKey::Token, token);
 }

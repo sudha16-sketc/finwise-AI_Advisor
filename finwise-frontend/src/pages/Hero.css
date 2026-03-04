@@ -29,6 +29,7 @@ position: fixed;
 
     right: 80%;
     font-size: 8rem;
+    font-weight: 800;
 
 }
 
@@ -42,6 +43,7 @@ position: fixed;
   
     left: 140%;
       font-size: 8rem;
+    font-weight: 800;
 
 }
 
@@ -63,7 +65,7 @@ position: fixed;
 
 .container{
   position: absolute;
-  top: 30%;
+  top: 10%;
   left: 30%;
 }
 
