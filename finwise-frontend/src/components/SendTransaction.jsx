@@ -121,7 +121,7 @@ function SendTransaction({
   }
 
   return (
-    <div className="flex gap-[20px]">
+    <div className="transaction-wrapper">
       <div className="send-transaction-container">
         <h1>Send XLM</h1>
 
