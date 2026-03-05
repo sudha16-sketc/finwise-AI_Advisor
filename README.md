@@ -90,7 +90,7 @@ https://github.com/user-attachments/assets/935947a7-8f41-4184-9537-35a334b00502
 ![CI](https://github.com/sudha16-sketc/stellar-journey-to-mastery/actions/workflows/create main.yml/badge.svg)
 
 ## Live Demo
-https://stellar-journey-to-mastery-dixqcw9h6-sudha16-sketcs-projects.vercel.app
+https://stellar-journey-to-mastery-gd6vsc2sg-sudha16-sketcs-projects.vercel.app
 
 ## Smart Contract
 
