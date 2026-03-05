@@ -56,7 +56,7 @@ async fn main() -> std::io::Result<()> {
 
     
     let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
-    let bind_address = format!("{}:{}", host, port);
+    let bind_address = format!("0.0.0.0:{}", port);
 
     println!("🚀 Server running at http://{}", bind_address);
     log::info!("🚀 Starting server at http://{}", bind_address);
