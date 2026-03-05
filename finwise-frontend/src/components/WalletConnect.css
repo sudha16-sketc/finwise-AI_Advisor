@@ -4,9 +4,9 @@
   margin-bottom: 1rem;
 }
 .wallet-connect-container{
-    margin: 0;
-    overflow: hidden;
-      height: 100vh;
+  margin: 0;
+  min-height: 100vh;
+  width: 100%;
 }
 .coverContainer{
     background: linear-gradient(135deg, #667eea 0%, #00218d 100%);
@@ -24,7 +24,7 @@
 
 .connect-with-google{
   background-color: transparent;
-  background-image: url("image/bmw.jpg");
+  background-image: url("/image/bmw.jpg");
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -97,6 +97,17 @@
 
 .connect-with-google .alt-buttons .facebook-btn {
   background-color: #3b82f6; /* bg-blue-500 */
+}
+.connect-with-google input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.wallet-options {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
 }
 
 .wallet-connect-section{
@@ -181,3 +192,49 @@
   padding: 0.25rem;
 }
 
+/* ================= MOBILE RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+
+  .wallet-connect-container {
+    height: auto;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .coverContainer {
+    position: relative;
+    width: 100%;
+    height: auto;
+    clip-path: none;
+    padding: 40px 20px;
+  }
+
+  .connect-with-google {
+    position: relative;
+    width: 90%;
+    max-width: 350px;
+    left: 0;
+    bottom: 0;
+    margin-top: 20px;
+  }
+
+  .wallet-connect-section {
+    position: relative;
+    margin-top: 20px;
+  }
+
+  .connect-button,
+  .disconnect-button {
+    min-width: 100%;
+  }
+
+  .wallet-address {
+    flex-direction: column;
+    align-items: flex-start;
+    word-break: break-all;
+  }
+
+}
