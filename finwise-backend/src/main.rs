@@ -247,7 +247,7 @@ async fn check_auth(
 async fn google_login() -> HttpResponse {
     let client_id = env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID not set");
 
-    let redirect_uri = "http://localhost:8080/auth/google/callback";
+    let redirect_uri = "https://finwise-backend.up.railway.app/auth/google/callback";
 
     let google_auth_url = format!(
         "https://accounts.google.com/o/oauth2/v2/auth?client_id={}&redirect_uri={}&response_type=code&scope=openid%20email%20profile&access_type=offline&prompt=consent",
@@ -285,7 +285,7 @@ async fn google_callback(
             ("code", code),
             ("client_id", &client_id),
             ("client_secret", &client_secret),
-            ("redirect_uri", &"http://localhost:8080/auth/google/callback".to_string()),
+            ("redirect_uri", &"https://finwise-backend.up.railway.app/auth/google/callback".to_string()),
             ("grant_type", &"authorization_code".to_string()),
         ])
         .send()

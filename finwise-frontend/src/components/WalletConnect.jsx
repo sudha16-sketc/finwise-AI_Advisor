@@ -82,7 +82,7 @@ function WalletConnect({
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/signup", {
+      const response = await fetch("https://finwise-backend.up.railway.app/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -122,7 +122,7 @@ function WalletConnect({
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/login", {
+      const response = await fetch("https://finwise-backend.up.railway.app/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -145,7 +145,7 @@ function WalletConnect({
   // Logout
   const handleSignout = async () => {
     try {
-      await fetch("http://localhost:8080/api/logout", {
+      await fetch("https://finwise-backend.up.railway.app/api/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -166,7 +166,7 @@ function WalletConnect({
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/check-auth", {
+        const res = await fetch("https://finwise-backend.up.railway.app/api/check-auth", {
           credentials: "include",
         });
         const data = await res.json();
@@ -252,7 +252,7 @@ function WalletConnect({
             type="button"
             className="google-btn"
             onClick={() =>
-              (window.location.href = "http://localhost:8080/auth/google")
+              (window.location.href = "https://finwise-backend.up.railway.app/auth/google")
             }
           >
             Sign in with Google
