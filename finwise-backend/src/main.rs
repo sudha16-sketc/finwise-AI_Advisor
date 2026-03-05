@@ -12,6 +12,7 @@ use dotenvy::dotenv;
 use reqwest::Client;
 
 mod routes;
+mod stellar;
 mod config;
 mod db;
 mod models;
