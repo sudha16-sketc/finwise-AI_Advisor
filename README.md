@@ -78,8 +78,6 @@ To encourage consistency, FinWise AI rewards users for maintaining saving streak
 ## demo video 
 https://github.com/user-attachments/assets/935947a7-8f41-4184-9537-35a334b00502
 
-## Live Demo
-https://stellar-journey-to-mastery-5evyy94io-sudha16-sketcs-projects.vercel.app
 
 ## Mobile Responsive View
 
@@ -91,6 +89,8 @@ https://stellar-journey-to-mastery-5evyy94io-sudha16-sketcs-projects.vercel.app
 
 ![CI](https://github.com/sudha16-sketc/stellar-journey-to-mastery/actions/workflows/create main.yml/badge.svg)
 
+## Live Demo
+https://stellar-journey-to-mastery-l4r9ke2f9-sudha16-sketcs-projects.vercel.app
 
 ## Smart Contract
 
