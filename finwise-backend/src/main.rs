@@ -54,7 +54,7 @@ async fn main() -> std::io::Result<()> {
         std::process::exit(1);
     });
 
-    let host = env::var("HOST").unwrap_or_else(|_| "localhost".to_string());
+    
     let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
     let bind_address = format!("{}:{}", host, port);
 
