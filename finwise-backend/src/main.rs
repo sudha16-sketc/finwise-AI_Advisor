@@ -10,6 +10,8 @@ use bcrypt::{hash, verify, DEFAULT_COST};
 use std::env;
 use dotenvy::dotenv;
 use reqwest::Client;
+use actix_session::config::PersistentSession;
+use std::time::Duration;
 
 mod routes;
 mod stellar;
@@ -80,18 +82,23 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin("http://localhost:3000")
-            .allowed_methods(vec!["GET", "POST"])
-            .allowed_headers(vec!["Content-Type"])
+            .allowed_origin("https://stellar-journey-to-mastery.vercel.app")
+            .allowed_methods(vec!["GET", "POST", "OPTIONS"])
+            .allowed_headers(vec!["Content-Type", "Authorization", "Accept"])
             .supports_credentials();
-
         App::new()
             .app_data(db_data.clone())
             .wrap(cors)
             .wrap(middleware::Logger::default())
-            .wrap(SessionMiddleware::new(
-                CookieSessionStore::default(),
-                secret_key.clone(),
-            ))
+            .wrap(
+                SessionMiddleware::builder(
+                    CookieSessionStore::default(),
+                    secret_key.clone(),
+                )
+                .cookie_secure(true)
+                .cookie_same_site(actix_web::cookie::SameSite::None)
+                .build()
+            )
             .app_data(
                 web::JsonConfig::default()
                     .error_handler(|err, _req| {
@@ -191,7 +198,7 @@ async fn login(
         .unwrap();
 
     if let Some(user) = user {
-        if verify(&form.password, &user.password).unwrap() {
+        if verify(&form.password, &user.password).unwrap_or(false) {
             if let Some(user_id) = user.id {
                 session.insert("user_id", user_id).unwrap();
             }
@@ -341,7 +348,7 @@ async fn google_callback(
     session.insert("user_id", user_id).unwrap();
 
     HttpResponse::Found()
-        .append_header(("Location", "http://localhost:3000/dashboard"))
+        .append_header(("Location", "http://stellar-journey-to-mastery.vercel.app/dashboard"))
         .finish()
 }
 
