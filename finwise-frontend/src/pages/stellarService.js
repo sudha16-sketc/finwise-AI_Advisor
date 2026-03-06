@@ -13,7 +13,7 @@ import axios from 'axios';
 // Stellar testnet configuration
 const TESTNET_URL = 'https://horizon-testnet.stellar.org';
 const server = new StellarSdk.Horizon.Server(TESTNET_URL);
-const BACKEND_API = '/api'; // Proxied through Vite to localhost:8080
+const BACKEND_API = '/api'; 
 
 /**
  * Check if Freighter wallet is installed

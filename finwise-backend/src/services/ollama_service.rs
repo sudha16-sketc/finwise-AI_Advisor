@@ -4,11 +4,11 @@ use serde_json::{json, Value};
 use crate::models::analysis::{FinancialAdvice, StructuredFinancialData, BudgetPlan};
 use crate::utils::{AppError, AppResult};
 
-pub struct OllamaService {
+pub struct AiService {
     client: Client,
 }
 
-impl OllamaService {
+impl AiService {
     pub fn new() -> Self {
         Self {
             client: Client::new(),
@@ -19,17 +19,27 @@ impl OllamaService {
         &self,
         data: &StructuredFinancialData,
     ) -> AppResult<FinancialAdvice> {
+
         let prompt = self.build_prompt(data);
 
+        let api_key = std::env::var("GROQ_API_KEY")
+            .map_err(|_| AppError::OllamaApi("Missing GROQ_API_KEY".into()))?;
+
         let body = json!({
-            "model": "llama3",
-            "prompt": prompt,
-            "stream": false
+            "model": "llama3-8b-8192",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            "temperature": 0.3
         });
 
         let response = self
             .client
-            .post("http://localhost:11434/api/generate")
+            .post("https://api.groq.com/openai/v1/chat/completions")
+            .bearer_auth(api_key)
             .json(&body)
             .send()
             .await
@@ -37,14 +47,14 @@ impl OllamaService {
 
         if !response.status().is_success() {
             let err = response.text().await.unwrap_or_default();
-            return Err(AppError::OllamaApi(format!("Ollama error: {}", err)));
+            return Err(AppError::OllamaApi(format!("Groq error: {}", err)));
         }
 
         let response_json: Value = response.json().await.map_err(AppError::HttpRequest)?;
 
-        let text = response_json["response"]
+        let text = response_json["choices"][0]["message"]["content"]
             .as_str()
-            .ok_or_else(|| AppError::OllamaApi("No response from Ollama".into()))?;
+            .ok_or_else(|| AppError::OllamaApi("No response from Groq".into()))?;
 
         self.parse_advice(text)
     }
@@ -80,6 +90,7 @@ Do not include explanations.
     }
 
     fn parse_advice(&self, text: &str) -> AppResult<FinancialAdvice> {
+
         let cleaned = text
             .trim()
             .trim_start_matches("```json")
@@ -92,6 +103,7 @@ Do not include explanations.
 
         Ok(FinancialAdvice {
             risk_level: value["risk_level"].as_str().unwrap_or("Medium").to_string(),
+
             tax_saving_suggestions: value["tax_saving_suggestions"]
                 .as_array()
                 .map(|arr| {
@@ -100,6 +112,7 @@ Do not include explanations.
                         .collect::<Vec<String>>()
                 })
                 .unwrap_or_default(),
+
             income_growth_suggestions: value["income_growth_suggestions"]
                 .as_array()
                 .map(|arr| {
@@ -108,10 +121,12 @@ Do not include explanations.
                         .collect::<Vec<String>>()
                 })
                 .unwrap_or_default(),
+
             debt_strategy: value["debt_strategy"]
                 .as_str()
                 .unwrap_or("")
                 .to_string(),
+
             budget_plan: BudgetPlan {
                 needs: value["budget_plan"]["needs"].as_f64().unwrap_or(50.0),
                 wants: value["budget_plan"]["wants"].as_f64().unwrap_or(30.0),
