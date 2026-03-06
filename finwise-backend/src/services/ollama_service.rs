@@ -26,7 +26,7 @@ impl AiService {
             .map_err(|_| AppError::OllamaApi("Missing GROQ_API_KEY".into()))?;
 
         let body = json!({
-            "model": "llama3-8b-8192",
+            "model": "llama-3.3-70b-versatile",
             "messages": [
                 {
                     "role": "user",
@@ -53,6 +53,7 @@ impl AiService {
         let response_json: Value = response.json().await.map_err(AppError::HttpRequest)?;
 
         let text = response_json["choices"][0]["message"]["content"]
+        println!("Groq response: {}", text);
             .as_str()
             .ok_or_else(|| AppError::OllamaApi("No response from Groq".into()))?;
 
