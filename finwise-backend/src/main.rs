@@ -57,7 +57,10 @@ async fn main() -> std::io::Result<()> {
     });
 
     
-    let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
+    let port: u16 = env::var("PORT")
+        .unwrap_or_else(|_| "8080".to_string())
+        .parse()
+        .expect("PORT must be a number");
     let bind_address = format!("0.0.0.0:{}", port);
 
     println!("🚀 Server running at http://{}", bind_address);
@@ -81,9 +84,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://localhost:3000")
             .allowed_origin("https://stellar-journey-to-mastery.vercel.app")
-            .allowed_origin("https://*.vercel.app")
             .allowed_methods(vec!["GET", "POST", "OPTIONS"])
             .allowed_headers(vec!["Content-Type", "Authorization", "Accept"])
             .supports_credentials();
@@ -130,13 +131,15 @@ async fn main() -> std::io::Result<()> {
             /* =============================
                EXISTING ROUTES
             ============================== */
-
+            .route("/", web::get().to(|| async {
+                HttpResponse::Ok().body("FinWise backend running 🚀")
+            }))
             .route("/health", web::get().to(routes::health::health_check))
             .route("/auth/google", web::get().to(google_login))
             .route("/auth/google/callback", web::get().to(google_callback))
             
     })
-    .bind(bind_address)?
+    .bind(("0.0.0.0", port))?
     .run()
     .await
 }
