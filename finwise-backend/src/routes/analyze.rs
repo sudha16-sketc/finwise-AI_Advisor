@@ -5,7 +5,7 @@ use mongodb::bson::doc;
 use crate::db::{Database, collections};
 use crate::models::analysis::{AnalysisDocument, AnalyzeRequest, AnalyzeResponse, FinancialAdvice};
 use crate::models::profile::ProfileDocument;
-use crate::services::{OllamaService, parse_financial_text};
+use crate::services::{AiService, parse_financial_text};
 use crate::utils::{AppError, AppResult};
 
 pub async fn analyze(
@@ -28,8 +28,8 @@ pub async fn analyze(
 
     // Step 2: Call Gemini API for advice
     // Explicit type annotation to resolve E0282
-   let ollama = OllamaService::new();
-let advice: FinancialAdvice = ollama.get_financial_advice(&structured_data).await?;
+let ai = AiService::new();
+let advice: FinancialAdvice = ai.get_financial_advice(&structured_data).await?;
     log::info!("Gemini advice received for user {}", body.user_id);
 
     // Step 3: Store analysis in MongoDB
