@@ -53,9 +53,10 @@ impl AiService {
         let response_json: Value = response.json().await.map_err(AppError::HttpRequest)?;
 
         let text = response_json["choices"][0]["message"]["content"]
-        println!("Groq response: {}", text);
             .as_str()
             .ok_or_else(|| AppError::OllamaApi("No response from Groq".into()))?;
+        
+        println!("Groq response: {}", text);
 
         self.parse_advice(text)
     }
