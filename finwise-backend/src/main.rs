@@ -83,6 +83,7 @@ async fn main() -> std::io::Result<()> {
         let cors = Cors::default()
             .allowed_origin("http://localhost:3000")
             .allowed_origin("https://stellar-journey-to-mastery.vercel.app")
+            .allowed_origin("https://*.vercel.app")
             .allowed_methods(vec!["GET", "POST", "OPTIONS"])
             .allowed_headers(vec!["Content-Type", "Authorization", "Accept"])
             .supports_credentials();
@@ -348,7 +349,7 @@ async fn google_callback(
     session.insert("user_id", user_id).unwrap();
 
     HttpResponse::Found()
-        .append_header(("Location", "http://stellar-journey-to-mastery.vercel.app/dashboard"))
+        .append_header(("Location", "https://stellar-journey-to-mastery.vercel.app/dashboard"))
         .finish()
 }
 
