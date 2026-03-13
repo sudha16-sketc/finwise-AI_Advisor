@@ -3,14 +3,28 @@
  *
  * Auth + wallet connection UI for FinWise.
  *
- * Wallet logic is fully delegated to Stellar Wallets Kit via walletManager.js.
- * The kit's authModal() handles wallet selection, QR codes for WalletConnect,
- * extension detection, and session persistence — no custom code needed here.
+ * WHY createButton() instead of authModal():
+ *   authModal() is a programmatic call that opens the modal immediately.
+ *   In React, calling it from a button's onClick works fine for extension
+ *   wallets, but WalletConnect's QR rendering relies on the kit's Web
+ *   Component (<swk-app-modal>) already being live in the DOM at the moment
+ *   the modal opens. In some React render cycles, the component hydrates
+ *   after the call, causing the modal to appear empty or not at all.
+ *
+ *   StellarWalletsKit.createButton(ref) injects the kit's own <swk-button>
+ *   Web Component into a container div. This button manages its own click
+ *   → modal → QR flow entirely inside the kit's component tree, completely
+ *   sidestepping the React timing issue. The kit's STATE_UPDATED / DISCONNECT
+ *   events still fire normally so React state stays in sync.
+ *
+ *   We keep our own "Connect Wallet" button as a visible label, and hide the
+ *   kit's button visually — clicking our button programmatically clicks the
+ *   kit's button, triggering the kit's native flow.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  openWalletModal,
+  StellarWalletsKit,
   getConnectedAddress,
   disconnect as kitDisconnect,
   onKitEvent,
@@ -21,24 +35,33 @@ import "./WalletConnect.css";
 
 const API = "https://finwise-backend.up.railway.app";
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
 function WalletConnect({ publicKey, setPublicKey, isConnected, setIsConnected }) {
-  // ── Auth state ──
-  const [username, setUsername]           = useState("");
-  const [email, setEmail]                 = useState("");
-  const [password, setPassword]           = useState("");
-  const [isLogin, setIsLogin]             = useState(false);
+  // ── Auth state ──────────────────────────────────────────────────────────
+  const [username, setUsername]               = useState("");
+  const [email, setEmail]                     = useState("");
+  const [password, setPassword]               = useState("");
+  const [isLogin, setIsLogin]                 = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // ── Wallet state ──
-  const [walletError, setWalletError]     = useState(null);
-  const [walletLoading, setWalletLoading] = useState(false);
+  // ── Wallet state ────────────────────────────────────────────────────────
+  const [walletError, setWalletError]         = useState(null);
+
+  // Ref for the hidden div where the kit mounts its <swk-button>
+  const kitButtonRef = useRef(null);
+
+  // ── Mount kit button into its container div ──────────────────────────────
+  //
+  // This runs once after the component mounts. At this point the DOM node
+  // referenced by kitButtonRef is guaranteed to exist, so the kit can safely
+  // inject its Web Component into it.
+  //
+  useEffect(() => {
+    if (!kitButtonRef.current) return;
+    StellarWalletsKit.createButton(kitButtonRef.current);
+  }, []);
 
   // ── Restore session on mount ─────────────────────────────────────────────
-
   useEffect(() => {
-    // 1. Check backend session (email/Google auth)
     const checkBackendAuth = async () => {
       try {
         const res  = await fetch(`${API}/api/check-auth`, { credentials: "include" });
@@ -55,7 +78,6 @@ function WalletConnect({ publicKey, setPublicKey, isConnected, setIsConnected })
       }
     };
 
-    // 2. Restore any existing kit wallet session (kit persists across reloads)
     const restoreWalletSession = async () => {
       const address = await getConnectedAddress();
       if (address) {
@@ -68,8 +90,7 @@ function WalletConnect({ publicKey, setPublicKey, isConnected, setIsConnected })
     restoreWalletSession();
   }, []);
 
-  // ── Listen to kit events (disconnect / account change) ───────────────────
-
+  // ── Listen to kit events ─────────────────────────────────────────────────
   useEffect(() => {
     const unsub = onKitEvent((event) => {
       if (event.eventType === KitEventType.DISCONNECT) {
@@ -77,33 +98,37 @@ function WalletConnect({ publicKey, setPublicKey, isConnected, setIsConnected })
         setIsConnected(false);
       }
       if (event.eventType === KitEventType.STATE_UPDATED) {
-        const addr = event.payload.address;
+        const addr = event.payload?.address;
         if (addr) {
           setPublicKey(addr);
           setIsConnected(true);
+          setWalletError(null);
         } else {
           setPublicKey(null);
           setIsConnected(false);
         }
       }
     });
-    return unsub; // clean up on unmount
+    return unsub;
   }, []);
 
   // ── Wallet handlers ──────────────────────────────────────────────────────
 
-  const handleConnect = async () => {
-    setWalletLoading(true);
+  // Clicking our styled button programmatically clicks the hidden kit button.
+  // The kit then opens its own modal (with WalletConnect QR if configured).
+  const handleConnect = () => {
     setWalletError(null);
-    try {
-      // Opens the kit's built-in modal — handles all wallets + WalletConnect QR
-      const address = await openWalletModal();
-      setPublicKey(address);
-      setIsConnected(true);
-    } catch (err) {
-      setWalletError(err.message || "Failed to connect wallet");
-    } finally {
-      setWalletLoading(false);
+    const kitBtn = kitButtonRef.current?.querySelector("swk-button");
+    if (kitBtn) {
+      kitBtn.click();
+    } else {
+      // Fallback: open modal directly (works for non-WC wallets)
+      StellarWalletsKit.authModal().then(({ address }) => {
+        if (address) {
+          setPublicKey(address);
+          setIsConnected(true);
+        }
+      }).catch((err) => setWalletError(err.message));
     }
   };
 
@@ -114,17 +139,13 @@ function WalletConnect({ publicKey, setPublicKey, isConnected, setIsConnected })
   };
 
   // ── Auth handlers ────────────────────────────────────────────────────────
-
   const handleSignup = async (e) => {
     e.preventDefault();
-    if (!username || !email || !password) {
-      alert("Please fill in all fields!");
-      return;
-    }
+    if (!username || !email || !password) { alert("Please fill in all fields!"); return; }
     try {
       const res  = await fetch(`${API}/api/signup`, {
-        method:      "POST",
-        headers:     { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ username, email, password, walletAddress: publicKey }),
       });
@@ -136,9 +157,7 @@ function WalletConnect({ publicKey, setPublicKey, isConnected, setIsConnected })
       } else {
         alert(data.message);
       }
-    } catch {
-      alert("Server error. Try again later.");
-    }
+    } catch { alert("Server error. Try again later."); }
   };
 
   const handleLogin = async (e) => {
@@ -146,34 +165,31 @@ function WalletConnect({ publicKey, setPublicKey, isConnected, setIsConnected })
     if (!email || !password) { alert("Please fill in all fields!"); return; }
     try {
       const res  = await fetch(`${API}/api/login`, {
-        method:      "POST",
-        headers:     { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (res.ok) { alert("Login successful!"); setIsAuthenticated(true); }
-      else          { alert(data.message); }
-    } catch {
-      alert("Server error. Try again later.");
-    }
+      else         { alert(data.message); }
+    } catch { alert("Server error. Try again later."); }
   };
 
   const handleSignout = async () => {
     try {
       await fetch(`${API}/api/logout`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
       handleDisconnect();
       setIsAuthenticated(false);
       window.location.href = "/";
-    } catch {
-      alert("Logout failed. Try again later.");
-    }
+    } catch { alert("Logout failed. Try again later."); }
   };
 
   // ── Render ───────────────────────────────────────────────────────────────
-
   return (
     <div className="wallet-connect-container">
 
@@ -230,6 +246,14 @@ function WalletConnect({ publicKey, setPublicKey, isConnected, setIsConnected })
 
           {walletError && <div className="error-message">{walletError}</div>}
 
+          {/*
+            Hidden container where the kit mounts its <swk-button> Web Component.
+            It must be in the DOM at all times (not conditionally rendered) so
+            the kit's component is always registered and clickable.
+            We hide it visually — our own button triggers it via .click().
+          */}
+          <div ref={kitButtonRef} style={{ display: "none" }} />
+
           {isConnected ? (
             <div className="connected-info">
               <div className="wallet-address">
@@ -251,15 +275,11 @@ function WalletConnect({ publicKey, setPublicKey, isConnected, setIsConnected })
             </div>
           ) : (
             <div className="wallet-options">
-              <button
-                onClick={handleConnect}
-                className="connect-button"
-                disabled={walletLoading}
-              >
-                {walletLoading ? "Opening wallet picker…" : "Connect Wallet"}
+              <button onClick={handleConnect} className="connect-button">
+                Connect Wallet
               </button>
               <p className="wallet-hint">
-                Supports Freighter, Albedo, xBull, Rabet, Lobstr, WalletConnect&nbsp;(mobile), and more.
+                Supports Freighter, Albedo, xBull, Lobstr, WalletConnect&nbsp;(mobile QR), and more.
               </p>
             </div>
           )}
