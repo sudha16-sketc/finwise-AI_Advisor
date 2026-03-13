@@ -46,10 +46,13 @@ StellarWalletsKit.init({
       : []),
   ],
 
-  // The kit shows an "Install" label for extensions not yet installed.
+  // Hide wallets that can't work in the current environment.
+  // On mobile browsers, extension wallets (Freighter, Rabet, xBull) are
+  // never injected into window, so the kit correctly treats them as
+  // unsupported and will hide them rather than showing an "Install" prompt.
   authModal: {
-    hideUnsupportedWallets: false,
-    showInstallLabel:       true,
+    hideUnsupportedWallets: true,
+    showInstallLabel:       false,
   },
 });
 
