@@ -14,7 +14,6 @@ import BudgetChart from "../components/BudgetChart";
 import SavingsChart from "../components/SavingsChart";
 import Txhistory from "../components/TxHistory";
 import { getStats } from "../services/stellarPiggy";
-import { getConnectedAddress, onKitEvent, KitEventType } from "../services/walletManager";
 
 function StatCard({ Icon, label, value, sub, color }) {
   return (
@@ -36,58 +35,12 @@ function fromContractAmount(value) {
   return Number(value) / 10 ** DECIMALS;
 }
 
-export default function Dashboard() {
-  const [profile, setProfile]           = useState(null);
-  const [loading, setLoading]           = useState(true);
-  const [error, setError]               = useState(null);
 
-  // Track wallet address locally — Dashboard is self-sufficient on mobile
-  const [walletAddress, setWalletAddress] = useState(null);
-  const [walletChecked, setWalletChecked] = useState(false); // true once we know wallet state
+export default function Dashboard({ publicKey, isConnected }) {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
-  // ── Step 1: resolve wallet address first ──────────────────────────────────
-  //
-  // On mobile, WalletConnect session restore is async over the network.
-  // We must NOT fetch chain data until we know the wallet address (or confirm
-  // there is none). This effect runs once and sets walletChecked = true when done.
-  //
-  useEffect(() => {
-    let cancelled = false;
-
-    const resolveWallet = async () => {
-      const address = await getConnectedAddress();
-      if (!cancelled) {
-        setWalletAddress(address);
-        setWalletChecked(true);
-      }
-    };
-
-    resolveWallet();
-
-    // Also subscribe to kit events so Dashboard reacts if the user connects
-    // or disconnects WHILE the dashboard is open (e.g. they connect from
-    // another tab, or the WalletConnect session expires on mobile).
-    const unsub = onKitEvent((event) => {
-      if (event.eventType === KitEventType.STATE_UPDATED) {
-        const addr = event.payload?.address ?? null;
-        setWalletAddress(addr);
-        setWalletChecked(true);
-      }
-      if (event.eventType === KitEventType.DISCONNECT) {
-        setWalletAddress(null);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-      unsub();
-    };
-  }, []);
-
-  // ── Step 2: fetch profile only after wallet is resolved ───────────────────
-  //
-  // useCallback so we can call it from the Retry button too.
-  //
   const fetchProfile = useCallback(async (address) => {
     setLoading(true);
     setError(null);
@@ -95,20 +48,24 @@ export default function Dashboard() {
     try {
       const apiData = await finwiseApi.getProfile();
 
-      // Only fetch chain data if we have a wallet address.
-      // On mobile this is the key guard — without it, getStats() would be
-      // called with no address and fail silently or throw.
-      let chainData = { total_saved: 0, current_streak: 0, longest_streak: 0, reward_points: 0 };
+      let chainData = {
+        total_saved:     0,
+        current_streak:  0,
+        longest_streak:  0,
+        reward_points:   0,
+      };
+
+      // Only fetch chain data if wallet is connected
       if (address) {
         chainData = (await getStats()) ?? chainData;
       }
 
       setProfile({
         ...apiData,
-        total_saved:     chainData.total_saved,
-        current_streak:  chainData.current_streak,
-        longest_streak:  chainData.longest_streak,
-        reward_points:   chainData.reward_points,
+        total_saved:    chainData.total_saved,
+        current_streak: chainData.current_streak,
+        longest_streak: chainData.longest_streak,
+        reward_points:  chainData.reward_points,
       });
     } catch (err) {
       setError(err.message || "Failed to load dashboard");
@@ -117,14 +74,15 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Trigger fetchProfile once wallet state is known, and again if address changes
+  // Re-fetch whenever publicKey changes.
+  // This handles the case where WalletConnect restores late on mobile —
+  // App updates publicKey prop, which triggers this effect automatically.
   useEffect(() => {
-    if (!walletChecked) return; // wait — session restore not done yet
-    fetchProfile(walletAddress);
-  }, [walletChecked, walletAddress, fetchProfile]);
+    fetchProfile(publicKey);
+  }, [publicKey, fetchProfile]);
 
-  // ── Render: wallet not connected ──────────────────────────────────────────
-  if (walletChecked && !walletAddress) {
+  // ── Render: wallet not connected ────────────────────────────────────────
+  if (!isConnected || !publicKey) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-sky-50 px-4">
         <div className="text-center bg-white rounded-3xl p-10 shadow-sm border border-slate-100 max-w-md">
@@ -138,21 +96,19 @@ export default function Dashboard() {
     );
   }
 
-  // ── Render: waiting for wallet session restore (mobile WC is slow) ─────────
-  if (!walletChecked || loading) {
+  // ── Render: loading ──────────────────────────────────────────────────────
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-sky-50">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-sky-500 animate-spin mx-auto mb-4" />
-          <p className="text-slate-500">
-            {!walletChecked ? "Restoring wallet session…" : "Loading your dashboard…"}
-          </p>
+          <p className="text-slate-500">Loading your dashboard…</p>
         </div>
       </div>
     );
   }
 
-  // ── Render: error ─────────────────────────────────────────────────────────
+  // ── Render: error ────────────────────────────────────────────────────────
   if (error || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-sky-50 px-4">
@@ -162,7 +118,7 @@ export default function Dashboard() {
             {error || "Run a financial analysis first to populate your dashboard."}
           </p>
           <button
-            onClick={() => fetchProfile(walletAddress)}
+            onClick={() => fetchProfile(publicKey)}
             className="flex items-center gap-2 mx-auto px-6 py-3 bg-sky-500 text-white rounded-xl hover:bg-sky-600 transition-colors"
           >
             <RefreshCw className="w-4 h-4" /> Retry
@@ -172,7 +128,7 @@ export default function Dashboard() {
     );
   }
 
-  // ── Render: dashboard ─────────────────────────────────────────────────────
+  // ── Render: dashboard ────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-sky-50 py-10 px-4">
       <div className="max-w-5xl mx-auto">
@@ -184,7 +140,7 @@ export default function Dashboard() {
             <p className="text-slate-500 text-sm mt-1">Welcome back, {profile.user_id}</p>
           </div>
           <button
-            onClick={() => fetchProfile(walletAddress)}
+            onClick={() => fetchProfile(publicKey)}
             className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-sky-600 hover:border-sky-300 transition-all"
           >
             <RefreshCw className="w-5 h-5" />
