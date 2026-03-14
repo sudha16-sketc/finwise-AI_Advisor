@@ -13,7 +13,7 @@ import * as freighter from "@stellar/freighter-api";
 
 const server = new rpc.Server("https://soroban-testnet.stellar.org");
 
-const CONTRACT_ID = "CCQ62QMQSDDXMBD5PFQD4HJODSLMEFHQVCAQEWLEI5YS3T7H7X24YSBK";
+const CONTRACT_ID = "CDPEPG5VFKOAVKLPF47HWEQIC2LJ353RECGOPW4OKQWDU2T62MDVGGCT";
 // Convert number → i128
 
 const DECIMALS = 7;
