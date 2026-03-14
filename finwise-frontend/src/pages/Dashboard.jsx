@@ -35,13 +35,16 @@ function fromContractAmount(value) {
   return Number(value) / 10 ** DECIMALS;
 }
 
-
-export default function Dashboard({ publicKey, isConnected }) {
+// Same pattern as TxHistory and SendTransaction —
+// just receive publicKey as a prop, no internal wallet resolution needed
+export default function Dashboard({ publicKey }) {
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
 
-  const fetchProfile = useCallback(async (address) => {
+  const fetchProfile = useCallback(async () => {
+    if (!publicKey) return;   // same guard TxHistory uses
+
     setLoading(true);
     setError(null);
 
@@ -49,16 +52,13 @@ export default function Dashboard({ publicKey, isConnected }) {
       const apiData = await finwiseApi.getProfile();
 
       let chainData = {
-        total_saved:     0,
-        current_streak:  0,
-        longest_streak:  0,
-        reward_points:   0,
+        total_saved:    0,
+        current_streak: 0,
+        longest_streak: 0,
+        reward_points:  0,
       };
 
-      // Only fetch chain data if wallet is connected
-      if (address) {
-        chainData = (await getStats()) ?? chainData;
-      }
+      chainData = (await getStats()) ?? chainData;
 
       setProfile({
         ...apiData,
@@ -72,17 +72,15 @@ export default function Dashboard({ publicKey, isConnected }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [publicKey]);
 
-  // Re-fetch whenever publicKey changes.
-  // This handles the case where WalletConnect restores late on mobile —
-  // App updates publicKey prop, which triggers this effect automatically.
+  // Same pattern as TxHistory's useEffect
   useEffect(() => {
-    fetchProfile(publicKey);
-  }, [publicKey, fetchProfile]);
+    fetchProfile();
+  }, [fetchProfile]);
 
-  // ── Render: wallet not connected ────────────────────────────────────────
-  if (!isConnected || !publicKey) {
+  // Same pattern as TxHistory and SendTransaction — return null if no key yet
+  if (!publicKey) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-sky-50 px-4">
         <div className="text-center bg-white rounded-3xl p-10 shadow-sm border border-slate-100 max-w-md">
@@ -96,7 +94,6 @@ export default function Dashboard({ publicKey, isConnected }) {
     );
   }
 
-  // ── Render: loading ──────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-sky-50">
@@ -108,7 +105,6 @@ export default function Dashboard({ publicKey, isConnected }) {
     );
   }
 
-  // ── Render: error ────────────────────────────────────────────────────────
   if (error || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-sky-50 px-4">
@@ -118,7 +114,7 @@ export default function Dashboard({ publicKey, isConnected }) {
             {error || "Run a financial analysis first to populate your dashboard."}
           </p>
           <button
-            onClick={() => fetchProfile(publicKey)}
+            onClick={fetchProfile}
             className="flex items-center gap-2 mx-auto px-6 py-3 bg-sky-500 text-white rounded-xl hover:bg-sky-600 transition-colors"
           >
             <RefreshCw className="w-4 h-4" /> Retry
@@ -128,7 +124,6 @@ export default function Dashboard({ publicKey, isConnected }) {
     );
   }
 
-  // ── Render: dashboard ────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-sky-50 py-10 px-4">
       <div className="max-w-5xl mx-auto">
@@ -140,7 +135,7 @@ export default function Dashboard({ publicKey, isConnected }) {
             <p className="text-slate-500 text-sm mt-1">Welcome back, {profile.user_id}</p>
           </div>
           <button
-            onClick={() => fetchProfile(publicKey)}
+            onClick={fetchProfile}
             className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-sky-600 hover:border-sky-300 transition-all"
           >
             <RefreshCw className="w-5 h-5" />
@@ -227,7 +222,7 @@ export default function Dashboard({ publicKey, isConnected }) {
         )}
 
         <div>
-          <Txhistory />
+          <Txhistory publicKey={publicKey} />
         </div>
 
       </div>
