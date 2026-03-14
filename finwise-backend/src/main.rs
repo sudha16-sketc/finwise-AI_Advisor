@@ -279,82 +279,192 @@ async fn google_callback(
     query: web::Query<std::collections::HashMap<String, String>>
 ) -> HttpResponse {
 
+    // ✅ Handle Google returning an error (e.g. user denied permission)
+    if let Some(error) = query.get("error") {
+        log::error!("❌ Google OAuth returned error: {}", error);
+        return HttpResponse::Found()
+            .append_header(("Location",
+                "https://stellar-journey-to-mastery.vercel.app/login?error=oauth_denied"))
+            .finish();
+    }
+
     let code = match query.get("code") {
         Some(c) => c,
-        None => return HttpResponse::BadRequest().body("No code found")
+        None => {
+            log::error!("❌ No code in Google callback");
+            return HttpResponse::Found()
+                .append_header(("Location",
+                    "https://stellar-journey-to-mastery.vercel.app/login?error=no_code"))
+                .finish();
+        }
     };
 
     let client_id = env::var("GOOGLE_CLIENT_ID").unwrap();
     let client_secret = env::var("GOOGLE_CLIENT_SECRET").unwrap();
-
     let client = Client::new();
 
     // Exchange code for token
-    let token_res = client
+    let token_response = client
         .post("https://oauth2.googleapis.com/token")
         .form(&[
-            ("code", code),
-            ("client_id", &client_id),
-            ("client_secret", &client_secret),
-            ("redirect_uri", &"https://finwise-backend.up.railway.app/auth/google/callback".to_string()),
-            ("grant_type", &"authorization_code".to_string()),
+            ("code", code.as_str()),
+            ("client_id", client_id.as_str()),
+            ("client_secret", client_secret.as_str()),
+            ("redirect_uri", "https://finwise-backend.up.railway.app/auth/google/callback"),
+            ("grant_type", "authorization_code"),
         ])
         .send()
-        .await
-        .unwrap()
-        .json::<serde_json::Value>()
-        .await
-        .unwrap();
+        .await;
 
-    let access_token = token_res["access_token"]
-        .as_str()
-        .unwrap();
+    let token_res = match token_response {
+        Ok(res) => match res.json::<serde_json::Value>().await {
+            Ok(json) => json,
+            Err(e) => {
+                log::error!("❌ Failed to parse token response: {}", e);
+                return HttpResponse::Found()
+                    .append_header(("Location",
+                        "https://stellar-journey-to-mastery.vercel.app/login?error=token_parse_failed"))
+                    .finish();
+            }
+        },
+        Err(e) => {
+            log::error!("❌ Token exchange request failed: {}", e);
+            return HttpResponse::Found()
+                .append_header(("Location",
+                    "https://stellar-journey-to-mastery.vercel.app/login?error=token_request_failed"))
+                .finish();
+        }
+    };
 
-    // Get user info
-    let user_info = client
+    // ✅ Check if Google returned an error in the token response
+    if let Some(err) = token_res.get("error") {
+        log::error!("❌ Google token error: {} - {:?}", err, token_res.get("error_description"));
+        return HttpResponse::Found()
+            .append_header(("Location",
+                "https://stellar-journey-to-mastery.vercel.app/login?error=token_failed"))
+            .finish();
+    }
+
+    // ✅ Safely extract access token
+    let access_token = match token_res["access_token"].as_str() {
+        Some(t) => t.to_string(),
+        None => {
+            log::error!("❌ No access_token in response: {:?}", token_res);
+            return HttpResponse::Found()
+                .append_header(("Location",
+                    "https://stellar-journey-to-mastery.vercel.app/login?error=no_access_token"))
+                .finish();
+        }
+    };
+
+    // Get user info from Google
+    let userinfo_response = client
         .get("https://www.googleapis.com/oauth2/v2/userinfo")
-        .bearer_auth(access_token)
+        .bearer_auth(&access_token)
         .send()
-        .await
-        .unwrap()
-        .json::<serde_json::Value>()
-        .await
-        .unwrap();
+        .await;
 
-    let email = user_info["email"].as_str().unwrap().to_string();
+    let user_info = match userinfo_response {
+        Ok(res) => match res.json::<serde_json::Value>().await {
+            Ok(json) => json,
+            Err(e) => {
+                log::error!("❌ Failed to parse userinfo response: {}", e);
+                return HttpResponse::Found()
+                    .append_header(("Location",
+                        "https://stellar-journey-to-mastery.vercel.app/login?error=userinfo_parse_failed"))
+                    .finish();
+            }
+        },
+        Err(e) => {
+            log::error!("❌ Userinfo request failed: {}", e);
+            return HttpResponse::Found()
+                .append_header(("Location",
+                    "https://stellar-journey-to-mastery.vercel.app/login?error=userinfo_failed"))
+                .finish();
+        }
+    };
 
-    // 🔥 Derive username from email
-    let username = email.split('@').next().unwrap().to_string();
+    // ✅ Safely extract email
+    let email = match user_info["email"].as_str() {
+        Some(e) => e.to_string(),
+        None => {
+            log::error!("❌ No email in userinfo response: {:?}", user_info);
+            return HttpResponse::Found()
+                .append_header(("Location",
+                    "https://stellar-journey-to-mastery.vercel.app/login?error=no_email"))
+                .finish();
+        }
+    };
 
+    let username = email.split('@').next().unwrap_or("user").to_string();
     let users = db.collection::<User>("users");
 
-    let existing = users
-        .find_one(doc! { "email": &email })
-        .await
-        .unwrap();
+    // ✅ Handle MongoDB errors instead of unwrapping
+    let existing = match users.find_one(doc! { "email": &email }).await {
+        Ok(result) => result,
+        Err(e) => {
+            log::error!("❌ MongoDB find_one failed: {}", e);
+            return HttpResponse::Found()
+                .append_header(("Location",
+                    "https://stellar-journey-to-mastery.vercel.app/login?error=db_error"))
+                .finish();
+        }
+    };
 
     let user_id = if let Some(user) = existing {
-        user.id.unwrap()
+        match user.id {
+            Some(id) => id,
+            None => {
+                log::error!("❌ Existing user has no ObjectId");
+                return HttpResponse::Found()
+                    .append_header(("Location",
+                        "https://stellar-journey-to-mastery.vercel.app/login?error=user_id_missing"))
+                    .finish();
+            }
+        }
     } else {
         let new_user = User {
             id: None,
             username,
             email: email.clone(),
-            password: "".into(), // no password for Google users
+            password: "".into(),
             wallet_address: None,
             created_at: Utc::now(),
         };
 
-        let insert = users.insert_one(new_user).await.unwrap();
-        insert.inserted_id.as_object_id().unwrap()
+        match users.insert_one(new_user).await {
+            Ok(insert) => match insert.inserted_id.as_object_id() {
+                Some(id) => id,
+                None => {
+                    log::error!("❌ Inserted ID is not an ObjectId");
+                    return HttpResponse::Found()
+                        .append_header(("Location",
+                            "https://stellar-journey-to-mastery.vercel.app/login?error=insert_id_error"))
+                        .finish();
+                }
+            },
+            Err(e) => {
+                log::error!("❌ Failed to insert new user: {}", e);
+                return HttpResponse::Found()
+                    .append_header(("Location",
+                        "https://stellar-journey-to-mastery.vercel.app/login?error=insert_failed"))
+                    .finish();
+            }
+        }
     };
 
-    session.insert("user_id", user_id).unwrap();
+    // ✅ Handle session insert failure
+    if let Err(e) = session.insert("user_id", user_id) {
+        log::error!("❌ Failed to insert session: {}", e);
+        return HttpResponse::Found()
+            .append_header(("Location",
+                "https://stellar-journey-to-mastery.vercel.app/login?error=session_failed"))
+            .finish();
+    }
+
+    log::info!("✅ Google OAuth success for {}", email);
 
     HttpResponse::Found()
         .append_header(("Location", "https://stellar-journey-to-mastery.vercel.app/dashboard"))
         .finish()
 }
-
-
-
