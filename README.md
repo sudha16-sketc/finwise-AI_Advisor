@@ -13,7 +13,9 @@
 ## Demo Video
 
 **Full MVP walkthrough — wallet connect, AI analysis, XLM send, piggy bank streak:**
+
 https://github.com/user-attachments/assets/b80716df-a6a6-4ff2-9cca-1af8eb5dcd0a
+
 > *The video demonstrates: landing page → wallet connection → Google OAuth → AI financial analysis → XLM send transaction → transaction history → piggy bank savings streak → dashboard stats.*
 
 ---
