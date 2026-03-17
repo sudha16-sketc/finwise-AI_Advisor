@@ -7,3 +7,5 @@ pub use analysis::*;
 pub use piggy::*;
 pub use profile::*;
 pub use transactions::*;
+pub mod metrics;
+pub use metrics::*;

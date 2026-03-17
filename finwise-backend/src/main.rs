@@ -4,14 +4,13 @@ use actix_cors::Cors;
 use actix_session::{SessionMiddleware, storage::CookieSessionStore};
 use actix_web::cookie::Key;
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use mongodb::bson::{doc, oid::ObjectId};
 use bcrypt::{hash, verify, DEFAULT_COST};
 use std::env;
 use dotenvy::dotenv;
 use reqwest::Client;
-use actix_session::config::PersistentSession;
-use std::time::Duration;
+
 
 mod routes;
 mod stellar;
@@ -78,7 +77,9 @@ async fn main() -> std::io::Result<()> {
 
     // Clone db for event listener task
     let db_listener = db.clone();
-    tokio::spawn(start_event_listener(db_listener));
+    tokio::spawn(async move {
+        services::start_event_listener(db_listener).await;
+    });
 
     let db_data = web::Data::new(db);
 
@@ -445,6 +446,8 @@ async fn google_callback(
             password: "".into(),
             wallet_address: None,
             created_at: Utc::now(),
+            last_active: None,
+            total_actions: 0,
         };
 
         match users.insert_one(new_user).await {

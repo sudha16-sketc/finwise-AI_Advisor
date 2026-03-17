@@ -1,40 +1,54 @@
 use crate::db::Database;
 use crate::models::user::User;
 use crate::models::transactions::Transaction;
-use chrono::{DateTime, Utc};
-use mongodb::{bson::doc, options::FindOneAndUpdateOptions};
-use actix_web::HttpResponse;
 
-pub async fn track_user(db: &Database, wallet_address: &str) -> Result<User, String> {
-    let users = db.collection::<User>("users");
-    let transactions = db.collection::<Transaction>("transactions");
+use mongodb::{
+    bson::{doc, DateTime},
+    Collection,
+};
 
-    // Upsert user: create if new, update last_active + inc actions
+use chrono::Utc;
+
+/// Track or update user activity (wallet-based)
+pub async fn track_user(
+    db: &Database,
+    wallet_address: &str,
+) -> Result<User, String> {
+    let users: Collection<User> = db.collection("users");
+    let transactions: Collection<Transaction> = db.collection("transactions");
+
     let filter = doc! { "wallet_address": wallet_address };
+
+    // MongoDB-native datetime (IMPORTANT)
+    let now = DateTime::now();
+
     let update = doc! {
         "$setOnInsert": {
-            "username": &format!("wallet_{}", &wallet_address[0..8]),
-            "email": format!("{}@stellar.finwise", &wallet_address[0..20]),
-            "password": "", // dummy for wallet users
+            "username": format!("wallet_{}", &wallet_address[..8.min(wallet_address.len())]),
+            "email": format!("{}@stellar.finwise", &wallet_address[..20.min(wallet_address.len())]),
+            "password": "",
             "wallet_address": wallet_address,
-            "created_at": Utc::now()
+            "created_at": now,
+            "total_actions": 0i64
         },
-        "$set": { "last_active": Utc::now() },
-        "$inc": { "total_actions": 1i64 }
+        "$set": {
+            "last_active": now
+        },
+        "$inc": {
+            "total_actions": 1i64
+        }
     };
 
-    let options = FindOneAndUpdateOptions::builder()
-        .return_document(mongodb::options::ReturnDocument::After)
-        .upsert(true)
-        .build();
-
+    // MongoDB 3.5 builder API (CRITICAL FIX)
     let updated_user = users
-        .find_one_and_update(filter, update, options)
+        .find_one_and_update(filter, update)
+        .upsert(true)
+        .return_document(mongodb::options::ReturnDocument::After)
         .await
         .map_err(|e| format!("DB error: {}", e))?;
 
     if let Some(user) = updated_user {
-        // Log transaction
+        // Log connect interaction
         let tx = Transaction {
             id: None,
             wallet_address: wallet_address.to_string(),
@@ -42,7 +56,11 @@ pub async fn track_user(db: &Database, wallet_address: &str) -> Result<User, Str
             amount: None,
             created_at: Utc::now(),
         };
-        let _ = transactions.insert_one(tx).await.map_err(|e| format!("Tx insert error: {}", e));
+
+        let _ = transactions
+            .insert_one(tx)
+            .await
+            .map_err(|e| format!("Tx insert error: {}", e))?;
 
         Ok(user)
     } else {
@@ -50,8 +68,14 @@ pub async fn track_user(db: &Database, wallet_address: &str) -> Result<User, Str
     }
 }
 
-pub async fn log_transaction(db: &Database, wallet_address: &str, tx_type: &str, amount: Option<f64>) -> Result<(), String> {
-    let transactions = db.collection::<Transaction>("transactions");
+/// Log any transaction (deposit / withdraw / connect)
+pub async fn log_transaction(
+    db: &Database,
+    wallet_address: &str,
+    tx_type: &str,
+    amount: Option<f64>,
+) -> Result<(), String> {
+    let transactions: Collection<Transaction> = db.collection("transactions");
 
     let tx = Transaction {
         id: None,
@@ -61,12 +85,13 @@ pub async fn log_transaction(db: &Database, wallet_address: &str, tx_type: &str,
         created_at: Utc::now(),
     };
 
-    transactions.insert_one(tx).await
+    transactions
+        .insert_one(tx)
+        .await
         .map_err(|e| format!("Tx insert error: {}", e))?;
 
-    // Update user activity
+    // Update user activity (reuses logic)
     track_user(db, wallet_address).await?;
 
     Ok(())
 }
-

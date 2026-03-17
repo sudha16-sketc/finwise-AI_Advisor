@@ -2,6 +2,8 @@ pub mod nlp_service;
 pub mod piggy_service;
 pub mod ollama_service;
 pub mod user_service;
+pub mod metrics_service;
+pub mod event_listener;
 
 pub use ollama_service::AiService;
 pub use nlp_service::parse_financial_text;
