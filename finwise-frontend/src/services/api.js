@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE_URL ='https://finwise-backend.up.railway.app'
+const BASE_URL ='https://finwise-aiadvisor-production.up.railway.app'
 
 const api = axios.create({
   baseURL: BASE_URL,

@@ -10,7 +10,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://finwise-backend.up.railway.app',
+        target: 'https://finwise-aiadvisor-production.up.railway.app',
         changeOrigin: true,
       }
     }
