@@ -2,6 +2,8 @@ use mongodb::{Client, Collection, Database as MongoDatabase};
 use std::env;
 
 pub mod collections {
+    pub const USERS: &str = "users";
+    pub const TRANSACTIONS: &str = "transactions";
     pub const ANALYSES: &str = "analyses";
     pub const PIGGY_BANKS: &str = "piggy_banks";
     pub const PROFILES: &str = "profiles";

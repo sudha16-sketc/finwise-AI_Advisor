@@ -74,6 +74,12 @@ async fn main() -> std::io::Result<()> {
         std::process::exit(1);
     });
 
+    use services::start_event_listener;
+
+    // Clone db for event listener task
+    let db_listener = db.clone();
+    tokio::spawn(start_event_listener(db_listener));
+
     let db_data = web::Data::new(db);
 
     let secret_key = Key::from(
@@ -127,6 +133,8 @@ async fn main() -> std::io::Result<()> {
                     .route("/analyze", web::post().to(routes::analyze::analyze))      
                     .route("/piggy/deposit", web::post().to(routes::piggy::deposit))   
                     .route("/piggy/stats/{user_id}", web::get().to(routes::piggy::get_stats))
+                    .route("/metrics", web::get().to(routes::metrics::metrics_handler))
+                    .route("/track-user", web::post().to(routes::user::track_user_handler))
             )
             /* =============================
                EXISTING ROUTES
@@ -174,7 +182,14 @@ async fn signup(
         password: hashed,
         wallet_address: form.walletAddress.clone(),
         created_at: Utc::now(),
+        last_active: None,
+        total_actions: 0,
     };
+
+    // Track user if wallet provided
+    if let Some(wallet) = &form.walletAddress {
+        services::track_user(&db, wallet).await.ok();
+    }
 
     let insert = collection.insert_one(new_user).await.unwrap();
     let inserted_id = insert.inserted_id

@@ -12,6 +12,8 @@ pub struct User {
     pub password: String,
 
     pub wallet_address: Option<String>,
+    pub last_active: Option<DateTime<Utc>>,
+    pub total_actions: u64,
 
     pub created_at: DateTime<Utc>,
 }

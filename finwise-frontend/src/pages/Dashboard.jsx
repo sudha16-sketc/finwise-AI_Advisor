@@ -221,6 +221,7 @@ export default function Dashboard({ publicKey }) {
           </div>
         )}
 
+<MetricsDashboard />
         <div>
           <Txhistory publicKey={publicKey} />
         </div>

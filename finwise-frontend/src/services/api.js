@@ -60,4 +60,10 @@ export const finwiseApi = {
     const { data } = await api.get('/api/check-auth')
     return data
   },
+
+  /** GET /api/metrics - Dashboard metrics */
+  getMetrics: async () => {
+    const { data } = await api.get('/api/metrics')
+    return data
+  },
 }
