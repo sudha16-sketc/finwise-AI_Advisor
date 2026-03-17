@@ -6,7 +6,7 @@
 
 ## Live Demo
 
-** [https://stellar-journey-to-mastery.vercel.app](https://stellar-journey-to-mastery.vercel.app)**
+** [https://finwise-ai-advisor.vercel.app](https://finwise-ai-advisor.vercel.app)**
 
 ---
 
