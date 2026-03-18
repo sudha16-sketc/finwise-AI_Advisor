@@ -1,7 +1,6 @@
 // src/services/metrics_service.rs
 use crate::db::Database;
 use crate::models::user::User;
-use crate::models::transactions::Transaction;
 use mongodb::bson::doc;
 use chrono::Utc;
 use futures_util::TryStreamExt;
@@ -12,22 +11,22 @@ pub struct Metrics {
     pub active_users_24h: u64,
     pub active_users_7d: u64,
     pub total_transactions: u64,
-    pub total_deposits: u64,
-    pub total_withdrawals: u64,
+    pub total_connects: u64,
     pub total_analyses: u64,
     pub avg_actions_per_user: f64,
 }
 
 pub async fn get_metrics(db: &Database) -> Result<Metrics, String> {
     let users        = db.collection::<User>("users");
-    let transactions = db.collection::<Transaction>("transactions");
+    // Use Document for collections we only count — avoids needing typed models
+    let transactions = db.collection::<mongodb::bson::Document>("transactions");
     let analyses     = db.collection::<mongodb::bson::Document>("analyses");
 
-    // ✅ chrono datetimes serialized to BSON — matches how fields are stored
     let now      = Utc::now();
     let day_ago  = now - chrono::Duration::hours(24);
     let week_ago = now - chrono::Duration::days(7);
 
+    // Serialize chrono to BSON — matches how last_active is stored
     let day_ago_bson = mongodb::bson::to_bson(&day_ago)
         .map_err(|e| format!("BSON serialize error: {}", e))?;
     let week_ago_bson = mongodb::bson::to_bson(&week_ago)
@@ -38,6 +37,7 @@ pub async fn get_metrics(db: &Database) -> Result<Metrics, String> {
         .await
         .map_err(|e| format!("DB error: {}", e))?;
 
+    // ✅ active_24h and active_7d now work because check_auth updates last_active
     let active_users_24h = users
         .count_documents(doc! { "last_active": { "$gte": &day_ago_bson } })
         .await
@@ -48,21 +48,19 @@ pub async fn get_metrics(db: &Database) -> Result<Metrics, String> {
         .await
         .unwrap_or(0);
 
+    // All transactions (connect type logged on every wallet connect / check-auth)
     let total_transactions = transactions
         .count_documents(doc! {})
         .await
         .unwrap_or(0);
 
-    let total_deposits = transactions
-        .count_documents(doc! { "tx_type": "deposit" })
+    // Connect events specifically
+    let total_connects = transactions
+        .count_documents(doc! { "tx_type": "connect" })
         .await
         .unwrap_or(0);
 
-    let total_withdrawals = transactions
-        .count_documents(doc! { "tx_type": "withdraw" })
-        .await
-        .unwrap_or(0);
-
+    // AI analyses run
     let total_analyses = analyses
         .count_documents(doc! {})
         .await
@@ -96,8 +94,7 @@ pub async fn get_metrics(db: &Database) -> Result<Metrics, String> {
         active_users_24h,
         active_users_7d,
         total_transactions,
-        total_deposits,
-        total_withdrawals,
+        total_connects,
         total_analyses,
         avg_actions_per_user,
     })

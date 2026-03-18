@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
-import { finwiseApi } from '../services/api.js'; // ✅ named export, not default
+import { finwiseApi } from '../services/api.js';
 
 const MetricsDashboard = () => {
   const [metrics, setMetrics] = useState(null);
@@ -14,7 +14,7 @@ const MetricsDashboard = () => {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const data = await finwiseApi.getMetrics(); // ✅ uses existing helper
+        const data = await finwiseApi.getMetrics();
         setMetrics(data);
         setError(null);
       } catch (err) {
@@ -37,23 +37,21 @@ const MetricsDashboard = () => {
     );
   }
 
-  // Fail silently — metrics are supplementary, don't break the dashboard
+  // Fail silently — metrics are supplementary
   if (error || !metrics) return null;
 
-  // Defensive field resolution (snake_case from Rust backend)
   const totalUsers        = metrics.total_users          ?? 0;
-  const activeUsers24h    = metrics.active_users_24h     ?? metrics.active_today ?? 0;
+  const activeUsers24h    = metrics.active_users_24h     ?? 0;
   const activeUsers7d     = metrics.active_users_7d      ?? 0;
   const totalTransactions = metrics.total_transactions   ?? 0;
-  const totalDeposits     = metrics.total_deposits       ?? 0;
-  const totalWithdrawals  = metrics.total_withdrawals    ?? 0;
   const totalAnalyses     = metrics.total_analyses       ?? 0;
+  const totalConnects     = metrics.total_connects       ?? 0;
   const avgActions        = metrics.avg_actions_per_user ?? 0;
 
+  // ✅ Removed Deposits/Withdrawals — replaced with Analyses and Connects
   const chartData = [
-    { name: 'Deposits',     value: totalDeposits },
-    { name: 'Withdrawals',  value: totalWithdrawals },
     { name: 'Analyses',     value: totalAnalyses },
+    { name: 'Connects',     value: totalConnects },
     { name: 'Transactions', value: totalTransactions },
   ];
 
@@ -97,9 +95,9 @@ const MetricsDashboard = () => {
         </div>
       </div>
 
-      {/* Bar chart */}
+      {/* Bar chart — no deposits/withdrawals */}
       <div className="bg-slate-50 p-6 rounded-2xl">
-        <h3 className="text-base font-bold text-slate-700 mb-4">💰 Activity Breakdown</h3>
+        <h3 className="text-base font-bold text-slate-700 mb-4">📈 Activity Breakdown</h3>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.25} />
@@ -119,7 +117,7 @@ const MetricsDashboard = () => {
         </ResponsiveContainer>
       </div>
 
-      {/* Top users — only rendered if backend returns top_users array */}
+      {/* Top users */}
       {Array.isArray(metrics.top_users) && metrics.top_users.length > 0 && (
         <div className="mt-6">
           <h3 className="text-base font-bold text-slate-700 mb-3">🏆 Most Active Users</h3>
@@ -149,7 +147,7 @@ const MetricsDashboard = () => {
       )}
 
       <div className="mt-6 px-4 py-3 bg-sky-50 rounded-xl text-xs text-sky-700">
-        🔄 Auto-refreshing every 30 seconds · Data powered by Soroban events + wallet connects
+        🔄 Auto-refreshing every 30 seconds · Data powered by wallet connects + AI analyses
       </div>
     </div>
   );

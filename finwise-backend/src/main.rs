@@ -10,7 +10,7 @@ use bcrypt::{hash, verify, DEFAULT_COST};
 use std::env;
 use dotenvy::dotenv;
 use reqwest::Client;
-use chrono::Utc; // ✅ only chrono — no mongodb::bson::DateTime import
+use chrono::Utc;
 
 mod routes;
 mod stellar;
@@ -106,7 +106,6 @@ async fn main() -> std::io::Result<()> {
                     actix_web::error::InternalError::from_response(err, response).into()
                 }),
             )
-            // Auth routes (outside /api scope so they don't conflict)
             .route("/api/signup", web::post().to(signup))
             .route("/api/login", web::post().to(login))
             .route("/api/logout", web::post().to(logout))
@@ -118,8 +117,6 @@ async fn main() -> std::io::Result<()> {
                     .route("/send", web::post().to(routes::routes::send_transaction))
                     .route("/profile", web::get().to(routes::profile::get_profile))
                     .route("/analyze", web::post().to(routes::analyze::analyze))
-                    .route("/piggy/deposit", web::post().to(routes::piggy::deposit))
-                    .route("/piggy/stats/{user_id}", web::get().to(routes::piggy::get_stats))
                     .route("/metrics", web::get().to(routes::metrics::metrics_handler))
                     .route("/track-user", web::post().to(routes::user::track_user_handler)),
             )
@@ -164,7 +161,7 @@ async fn signup(
         email: form.email.clone(),
         password: hashed,
         wallet_address: form.walletAddress.clone(),
-        created_at: Utc::now(), // ✅ chrono::DateTime<Utc>
+        created_at: Utc::now(),
         last_active: None,
         total_actions: 0,
     };
@@ -199,6 +196,15 @@ async fn login(
     if let Some(user) = user {
         if verify(&form.password, &user.password).unwrap_or(false) {
             if let Some(user_id) = user.id {
+                // ✅ Update last_active on login so active_24h/7d metrics work
+                let now_bson = mongodb::bson::to_bson(&Utc::now()).unwrap_or_default();
+                let _ = collection
+                    .update_one(
+                        doc! { "_id": user_id },
+                        doc! { "$set": { "last_active": &now_bson }, "$inc": { "total_actions": 1i64 } },
+                    )
+                    .await;
+
                 session.insert("user_id", user_id).unwrap();
             }
             return HttpResponse::Ok().json(json!({ "message": "Login successful" }));
@@ -225,6 +231,19 @@ async fn check_auth(
     };
 
     let collection = db.collection::<User>("users");
+
+    // ✅ Update last_active on every check-auth — this is what powers active_24h/7d metrics
+    // Every page load calls check-auth, so this accurately reflects recent activity
+    let now_bson = mongodb::bson::to_bson(&Utc::now()).unwrap_or_default();
+    let _ = collection
+        .update_one(
+            doc! { "_id": user_id },
+            doc! {
+                "$set": { "last_active": &now_bson },
+                "$inc": { "total_actions": 1i64 }
+            },
+        )
+        .await;
 
     let user = collection
         .find_one(doc! { "_id": user_id })
@@ -267,7 +286,6 @@ async fn google_callback(
     session: actix_session::Session,
     query: web::Query<std::collections::HashMap<String, String>>,
 ) -> HttpResponse {
-    // Handle Google returning an error (e.g. user denied permission)
     if let Some(error) = query.get("error") {
         log::error!("❌ Google OAuth returned error: {}", error);
         return HttpResponse::Found()
@@ -295,7 +313,6 @@ async fn google_callback(
     let client_secret = env::var("GOOGLE_CLIENT_SECRET").unwrap();
     let client = Client::new();
 
-    // Exchange code for token
     let token_response = client
         .post("https://oauth2.googleapis.com/token")
         .form(&[
@@ -362,7 +379,6 @@ async fn google_callback(
         }
     };
 
-    // Get user info from Google
     let userinfo_response = client
         .get("https://www.googleapis.com/oauth2/v2/userinfo")
         .bearer_auth(&access_token)
@@ -442,7 +458,7 @@ async fn google_callback(
             email: email.clone(),
             password: "".into(),
             wallet_address: None,
-            created_at: Utc::now(), // ✅ chrono::DateTime<Utc>
+            created_at: Utc::now(),
             last_active: None,
             total_actions: 0,
         };
@@ -471,6 +487,15 @@ async fn google_callback(
             }
         }
     };
+
+    // ✅ Update last_active on Google OAuth login too
+    let now_bson = mongodb::bson::to_bson(&Utc::now()).unwrap_or_default();
+    let _ = users
+        .update_one(
+            doc! { "_id": user_id },
+            doc! { "$set": { "last_active": &now_bson }, "$inc": { "total_actions": 1i64 } },
+        )
+        .await;
 
     if let Err(e) = session.insert("user_id", user_id) {
         log::error!("❌ Failed to insert session: {}", e);
