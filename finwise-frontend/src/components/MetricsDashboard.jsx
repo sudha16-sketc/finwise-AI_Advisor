@@ -4,21 +4,21 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
-import api from '../services/api.js';
+import { finwiseApi } from '../services/api.js'; // ✅ named export, not default
 
 const MetricsDashboard = () => {
-  const [metrics, setMetrics]   = useState(null);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
+  const [metrics, setMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await api.get('/metrics');
-        setMetrics(response.data);
+        const data = await finwiseApi.getMetrics(); // ✅ uses existing helper
+        setMetrics(data);
         setError(null);
       } catch (err) {
-        setError('Failed to fetch metrics');
+        setError(err.message || 'Failed to fetch metrics');
       } finally {
         setLoading(false);
       }
