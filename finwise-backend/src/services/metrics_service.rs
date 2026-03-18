@@ -4,6 +4,7 @@ use crate::models::user::User;
 use crate::models::transactions::Transaction;
 use mongodb::bson::doc;
 use chrono::Utc;
+use futures_util::TryStreamExt;
 
 #[derive(serde::Serialize)]
 pub struct Metrics {
@@ -18,12 +19,12 @@ pub struct Metrics {
 }
 
 pub async fn get_metrics(db: &Database) -> Result<Metrics, String> {
-    let users = db.collection::<User>("users");
+    let users        = db.collection::<User>("users");
     let transactions = db.collection::<Transaction>("transactions");
-    let analyses = db.collection::<mongodb::bson::Document>("analyses");
+    let analyses     = db.collection::<mongodb::bson::Document>("analyses");
 
-    // ✅ Use chrono and serialize to BSON — matches how the fields are stored
-    let now = Utc::now();
+    // ✅ chrono datetimes serialized to BSON — matches how fields are stored
+    let now      = Utc::now();
     let day_ago  = now - chrono::Duration::hours(24);
     let week_ago = now - chrono::Duration::days(7);
 
@@ -62,25 +63,21 @@ pub async fn get_metrics(db: &Database) -> Result<Metrics, String> {
         .await
         .unwrap_or(0);
 
-    // ✅ Count analyses from the analyses collection
     let total_analyses = analyses
         .count_documents(doc! {})
         .await
         .unwrap_or(0);
 
-    // ✅ Avg actions per user — avoid divide by zero
+    // Average actions per user via aggregation
     let avg_actions_per_user = if total_users > 0 {
-        // Sum total_actions across all users via aggregation
         let pipeline = vec![
             doc! { "$group": { "_id": null, "total": { "$sum": "$total_actions" } } }
         ];
+
         let mut cursor = users
             .aggregate(pipeline)
             .await
             .map_err(|e| format!("Aggregation error: {}", e))?;
-
-        use mongodb::bson::Document;
-        use futures_util::TryStreamExt;
 
         let mut total_actions_sum: f64 = 0.0;
         while let Some(doc) = cursor.try_next().await.unwrap_or(None) {
