@@ -91,7 +91,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("https://finwise-aiadvisor-production.up.railway.app")
+            .allowed_origin("https://finwise-ai-advisor.vercel.app")
             .allowed_methods(vec!["GET", "POST", "OPTIONS"])
             .allowed_headers(vec!["Content-Type", "Authorization", "Accept"])
             .supports_credentials();
@@ -300,7 +300,7 @@ async fn google_callback(
         log::error!("❌ Google OAuth returned error: {}", error);
         return HttpResponse::Found()
             .append_header(("Location",
-                "https://finwise-aiadvisor-production.up.railway.app/login?error=oauth_denied"))
+                "https://finwise-ai-advisor.vercel.app/login?error=oauth_denied"))
             .finish();
     }
 
@@ -310,7 +310,7 @@ async fn google_callback(
             log::error!("❌ No code in Google callback");
             return HttpResponse::Found()
                 .append_header(("Location",
-                    "https://finwise-aiadvisor-production.up.railway.app/login?error=no_code"))
+                    "https://finwise-ai-advisor.vercel.app/login?error=no_code"))
                 .finish();
         }
     };
@@ -339,7 +339,7 @@ async fn google_callback(
                 log::error!("❌ Failed to parse token response: {}", e);
                 return HttpResponse::Found()
                     .append_header(("Location",
-                        "https://finwise-aiadvisor-production.up.railway.app/login?error=token_parse_failed"))
+                        "https://finwise-ai-advisor.vercel.app/login?error=token_parse_failed"))
                     .finish();
             }
         },
@@ -347,7 +347,7 @@ async fn google_callback(
             log::error!("❌ Token exchange request failed: {}", e);
             return HttpResponse::Found()
                 .append_header(("Location",
-                    "https://finwise-aiadvisor-production.up.railway.app/login?error=token_request_failed"))
+                    "https://finwise-ai-advisor.vercel.app/login?error=token_request_failed"))
                 .finish();
         }
     };
@@ -357,7 +357,7 @@ async fn google_callback(
         log::error!("❌ Google token error: {} - {:?}", err, token_res.get("error_description"));
         return HttpResponse::Found()
             .append_header(("Location",
-                "https://finwise-aiadvisor-production.up.railway.app/login?error=token_failed"))
+                "https://finwise-ai-advisor.vercel.app/login?error=token_failed"))
             .finish();
     }
 
@@ -368,7 +368,7 @@ async fn google_callback(
             log::error!("❌ No access_token in response: {:?}", token_res);
             return HttpResponse::Found()
                 .append_header(("Location",
-                    "https://finwise-aiadvisor-production.up.railway.app/login?error=no_access_token"))
+                    "https://finwise-ai-advisor.vercel.app/login?error=no_access_token"))
                 .finish();
         }
     };
@@ -387,7 +387,7 @@ async fn google_callback(
                 log::error!("❌ Failed to parse userinfo response: {}", e);
                 return HttpResponse::Found()
                     .append_header(("Location",
-                        "https://finwise-aiadvisor-production.up.railway.app/login?error=userinfo_parse_failed"))
+                        "https://finwise-ai-advisor.vercel.app/login?error=userinfo_parse_failed"))
                     .finish();
             }
         },
@@ -395,7 +395,7 @@ async fn google_callback(
             log::error!("❌ Userinfo request failed: {}", e);
             return HttpResponse::Found()
                 .append_header(("Location",
-                    "https://finwise-aiadvisor-production.up.railway.app/login?error=userinfo_failed"))
+                    "https://finwise-ai-advisor.vercel.app/login?error=userinfo_failed"))
                 .finish();
         }
     };
@@ -407,7 +407,7 @@ async fn google_callback(
             log::error!("❌ No email in userinfo response: {:?}", user_info);
             return HttpResponse::Found()
                 .append_header(("Location",
-                    "https://finwise-aiadvisor-production.up.railway.app/login?error=no_email"))
+                    "https://finwise-ai-advisor.vercel.app/login?error=no_email"))
                 .finish();
         }
     };
@@ -422,7 +422,7 @@ async fn google_callback(
             log::error!("❌ MongoDB find_one failed: {}", e);
             return HttpResponse::Found()
                 .append_header(("Location",
-                    "https://finwise-aiadvisor-production.up.railway.app/login?error=db_error"))
+                    "https://finwise-ai-advisor.vercel.app/login?error=db_error"))
                 .finish();
         }
     };
@@ -434,7 +434,7 @@ async fn google_callback(
                 log::error!("❌ Existing user has no ObjectId");
                 return HttpResponse::Found()
                     .append_header(("Location",
-                        "https://finwise-aiadvisor-production.up.railway.app/login?error=user_id_missing"))
+                        "https://finwise-ai-advisor.vercel.app/login?error=user_id_missing"))
                     .finish();
             }
         }
@@ -457,7 +457,7 @@ async fn google_callback(
                     log::error!("❌ Inserted ID is not an ObjectId");
                     return HttpResponse::Found()
                         .append_header(("Location",
-                            "https://finwise-aiadvisor-production.up.railway.app/login?error=insert_id_error"))
+                            "https://finwise-ai-advisor.vercel.app/login?error=insert_id_error"))
                         .finish();
                 }
             },
@@ -465,7 +465,7 @@ async fn google_callback(
                 log::error!("❌ Failed to insert new user: {}", e);
                 return HttpResponse::Found()
                     .append_header(("Location",
-                        "https://finwise-aiadvisor-production.up.railway.app/login?error=insert_failed"))
+                        "https://finwise-ai-advisor.vercel.app/login?error=insert_failed"))
                     .finish();
             }
         }
@@ -476,13 +476,13 @@ async fn google_callback(
         log::error!("❌ Failed to insert session: {}", e);
         return HttpResponse::Found()
             .append_header(("Location",
-                "https://finwise-aiadvisor-production.up.railway.app/login?error=session_failed"))
+                "https://finwise-ai-advisor.vercel.app/login?error=session_failed"))
             .finish();
     }
 
     log::info!("✅ Google OAuth success for {}", email);
 
     HttpResponse::Found()
-        .append_header(("Location", "https://finwise-aiadvisor-production.up.railway.app/dashboard"))
+        .append_header(("Location", "https://finwise-ai-advisor.vercel.app/dashboard"))
         .finish()
 }
