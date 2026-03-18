@@ -1,16 +1,16 @@
+// src/main.rs
 use serde_json::json;
 use actix_web::{middleware, web, App, HttpServer, HttpResponse};
 use actix_cors::Cors;
 use actix_session::{SessionMiddleware, storage::CookieSessionStore};
 use actix_web::cookie::Key;
-use chrono::Utc;
 use serde::Deserialize;
 use mongodb::bson::{doc, oid::ObjectId};
 use bcrypt::{hash, verify, DEFAULT_COST};
 use std::env;
 use dotenvy::dotenv;
 use reqwest::Client;
-
+use mongodb::bson::DateTime;
 
 mod routes;
 mod stellar;
@@ -21,11 +21,7 @@ mod services;
 mod utils;
 
 use db::Database;
-use models::user::User; // make sure you have this model
-
-/* =============================
-   REQUEST STRUCTS
-============================= */
+use models::user::User;
 
 #[derive(Deserialize)]
 struct SignupRequest {
@@ -41,21 +37,16 @@ struct LoginRequest {
     password: String,
 }
 
-/* =============================
-   MAIN
-============================= */
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
 
-    let mongo_uri = env::var("MONGODB_URI").unwrap_or_else(|_| {
+    let _mongo_uri = env::var("MONGODB_URI").unwrap_or_else(|_| {
         eprintln!("❌ MONGODB_URI not set in .env");
         std::process::exit(1);
     });
 
-    
     let port: u16 = env::var("PORT")
         .unwrap_or_else(|_| "8080".to_string())
         .parse()
@@ -73,9 +64,6 @@ async fn main() -> std::io::Result<()> {
         std::process::exit(1);
     });
 
-    use services::start_event_listener;
-
-    // Clone db for event listener task
     let db_listener = db.clone();
     tokio::spawn(async move {
         services::start_event_listener(db_listener).await;
@@ -95,6 +83,7 @@ async fn main() -> std::io::Result<()> {
             .allowed_methods(vec!["GET", "POST", "OPTIONS"])
             .allowed_headers(vec!["Content-Type", "Authorization", "Accept"])
             .supports_credentials();
+
         App::new()
             .app_data(db_data.clone())
             .wrap(cors)
@@ -104,6 +93,7 @@ async fn main() -> std::io::Result<()> {
                     CookieSessionStore::default(),
                     secret_key.clone(),
                 )
+                // ✅ FIX: secure MUST be true when SameSite=None
                 .cookie_secure(true)
                 .cookie_same_site(actix_web::cookie::SameSite::None)
                 .build()
@@ -116,11 +106,6 @@ async fn main() -> std::io::Result<()> {
                         actix_web::error::InternalError::from_response(err, response).into()
                     })
             )
-
-            /* =============================
-               AUTH ROUTES
-            ============================== */
-
             .route("/api/signup", web::post().to(signup))
             .route("/api/login", web::post().to(login))
             .route("/api/logout", web::post().to(logout))
@@ -130,32 +115,24 @@ async fn main() -> std::io::Result<()> {
                     .route("/balance/{address}", web::get().to(routes::routes::get_balance))
                     .route("/transactions/{address}", web::get().to(routes::routes::get_transactions))
                     .route("/send", web::post().to(routes::routes::send_transaction))
-                    .route("/profile", web::get().to(routes::profile::get_profile))  
-                    .route("/analyze", web::post().to(routes::analyze::analyze))      
-                    .route("/piggy/deposit", web::post().to(routes::piggy::deposit))   
+                    .route("/profile", web::get().to(routes::profile::get_profile))
+                    .route("/analyze", web::post().to(routes::analyze::analyze))
+                    .route("/piggy/deposit", web::post().to(routes::piggy::deposit))
                     .route("/piggy/stats/{user_id}", web::get().to(routes::piggy::get_stats))
                     .route("/metrics", web::get().to(routes::metrics::metrics_handler))
                     .route("/track-user", web::post().to(routes::user::track_user_handler))
             )
-            /* =============================
-               EXISTING ROUTES
-            ============================== */
             .route("/", web::get().to(|| async {
                 HttpResponse::Ok().body("FinWise backend running 🚀")
             }))
             .route("/health", web::get().to(routes::health::health_check))
             .route("/auth/google", web::get().to(google_login))
             .route("/auth/google/callback", web::get().to(google_callback))
-            
     })
     .bind(("0.0.0.0", port))?
     .run()
     .await
 }
-
-/* =============================
-   AUTH HANDLERS
-============================= */
 
 async fn signup(
     db: web::Data<Database>,
@@ -182,12 +159,11 @@ async fn signup(
         email: form.email.clone(),
         password: hashed,
         wallet_address: form.walletAddress.clone(),
-        created_at: Utc::now(),
+        created_at: DateTime::now(),
         last_active: None,
         total_actions: 0,
     };
 
-    // Track user if wallet provided
     if let Some(wallet) = &form.walletAddress {
         services::track_user(&db, wallet).await.ok();
     }
@@ -198,8 +174,6 @@ async fn signup(
         .expect("Expected ObjectId");
 
     session.insert("user_id", inserted_id).unwrap();
-
-    
 
     HttpResponse::Created()
         .json(serde_json::json!({ "message": "Signup successful" }))
@@ -273,13 +247,11 @@ async fn check_auth(
 
 async fn google_login() -> HttpResponse {
     let client_id = env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID not set");
-
     let redirect_uri = "https://finwise-aiadvisor-production.up.railway.app/auth/google/callback";
 
     let google_auth_url = format!(
         "https://accounts.google.com/o/oauth2/v2/auth?client_id={}&redirect_uri={}&response_type=code&scope=openid%20email%20profile&access_type=offline&prompt=consent",
-        client_id,
-        redirect_uri
+        client_id, redirect_uri
     );
 
     HttpResponse::Found()
@@ -287,15 +259,12 @@ async fn google_login() -> HttpResponse {
         .finish()
 }
 
-
-
 async fn google_callback(
     db: web::Data<Database>,
     session: actix_session::Session,
     query: web::Query<std::collections::HashMap<String, String>>
 ) -> HttpResponse {
 
-    // ✅ Handle Google returning an error (e.g. user denied permission)
     if let Some(error) = query.get("error") {
         log::error!("❌ Google OAuth returned error: {}", error);
         return HttpResponse::Found()
@@ -319,7 +288,6 @@ async fn google_callback(
     let client_secret = env::var("GOOGLE_CLIENT_SECRET").unwrap();
     let client = Client::new();
 
-    // Exchange code for token
     let token_response = client
         .post("https://oauth2.googleapis.com/token")
         .form(&[
@@ -352,7 +320,6 @@ async fn google_callback(
         }
     };
 
-    // ✅ Check if Google returned an error in the token response
     if let Some(err) = token_res.get("error") {
         log::error!("❌ Google token error: {} - {:?}", err, token_res.get("error_description"));
         return HttpResponse::Found()
@@ -361,7 +328,6 @@ async fn google_callback(
             .finish();
     }
 
-    // ✅ Safely extract access token
     let access_token = match token_res["access_token"].as_str() {
         Some(t) => t.to_string(),
         None => {
@@ -373,7 +339,6 @@ async fn google_callback(
         }
     };
 
-    // Get user info from Google
     let userinfo_response = client
         .get("https://www.googleapis.com/oauth2/v2/userinfo")
         .bearer_auth(&access_token)
@@ -400,7 +365,6 @@ async fn google_callback(
         }
     };
 
-    // ✅ Safely extract email
     let email = match user_info["email"].as_str() {
         Some(e) => e.to_string(),
         None => {
@@ -415,7 +379,6 @@ async fn google_callback(
     let username = email.split('@').next().unwrap_or("user").to_string();
     let users = db.collection::<User>("users");
 
-    // ✅ Handle MongoDB errors instead of unwrapping
     let existing = match users.find_one(doc! { "email": &email }).await {
         Ok(result) => result,
         Err(e) => {
@@ -439,13 +402,14 @@ async fn google_callback(
             }
         }
     } else {
+        // ✅ FIX: wallet_address: None  (was: wallet_address UNIQUE which is invalid Rust)
         let new_user = User {
             id: None,
             username,
             email: email.clone(),
             password: "".into(),
             wallet_address: None,
-            created_at: Utc::now(),
+            created_at: DateTime::now(),
             last_active: None,
             total_actions: 0,
         };
@@ -462,7 +426,7 @@ async fn google_callback(
                 }
             },
             Err(e) => {
-                log::error!("❌ Failed to insert new user: {}", e);
+                log::error!("❌ Failed to insert new user: {:?}", e);
                 return HttpResponse::Found()
                     .append_header(("Location",
                         "https://finwise-ai-advisor.vercel.app/login?error=insert_failed"))
@@ -471,7 +435,6 @@ async fn google_callback(
         }
     };
 
-    // ✅ Handle session insert failure
     if let Err(e) = session.insert("user_id", user_id) {
         log::error!("❌ Failed to insert session: {}", e);
         return HttpResponse::Found()

@@ -1,3 +1,4 @@
+// src/config.rs
 use std::env;
 
 /// Application configuration loaded from environment variables

@@ -1,6 +1,7 @@
 use actix_web::{web, HttpResponse};
 use chrono::Utc;
 use mongodb::bson::doc;
+use mongodb::bson::DateTime;
 
 use crate::db::{Database, collections};
 use crate::models::analysis::{AnalysisDocument, AnalyzeRequest, AnalyzeResponse, FinancialAdvice};
@@ -40,7 +41,7 @@ let advice: FinancialAdvice = ai.get_financial_advice(&structured_data).await?;
         original_text: body.financial_text.clone(),
         structured_data: structured_data.clone(),
         advice: advice.clone(),
-        created_at: Utc::now(),
+        created_at: DateTime::now(),
     };
 
     let insert_result = analyses.insert_one(&analysis_doc).await?;
@@ -58,7 +59,7 @@ let advice: FinancialAdvice = ai.get_financial_advice(&structured_data).await?;
     let update = doc! {
         "$set": {
             "latest_advice": advice_bson,
-            "updated_at": Utc::now().to_rfc3339(),
+            "updated_at": DateTime::now(),
         },
         "$inc": { "total_analyses": 1_i32 }
     };

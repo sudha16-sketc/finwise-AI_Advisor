@@ -1,3 +1,4 @@
+// src/utils/mod.rs
 use actix_web::HttpResponse;
 use thiserror::Error;
 

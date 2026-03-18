@@ -1,3 +1,4 @@
+// src/models/analysis.rs
 use serde::{Deserialize, Serialize};
 use mongodb::bson::oid::ObjectId;
 use chrono::{DateTime, Utc};

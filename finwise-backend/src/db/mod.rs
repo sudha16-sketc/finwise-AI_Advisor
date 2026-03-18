@@ -1,8 +1,10 @@
+//src/db/mod.rs
 use mongodb::{
     bson::{doc, Document},
     options::IndexOptions,
     Client, Collection, Database as MongoDatabase, IndexModel,
 };
+
 use std::env;
 
 pub mod collections {
@@ -59,7 +61,14 @@ async fn create_indexes(db: &MongoDatabase) {
         .create_index(
             IndexModel::builder()
                 .keys(doc! { "wallet_address": 1 })
-                .options(IndexOptions::builder().unique(true).build())
+                .options(
+                    IndexOptions::builder()
+                        .unique(true)
+                        .partial_filter_expression(doc! {
+                            "wallet_address": { "$exists": true, "$ne": null }
+                        })
+                        .build()
+                )
                 .build(),
         )
         .await;
@@ -86,7 +95,7 @@ async fn create_indexes(db: &MongoDatabase) {
     let _ = transactions
         .create_index(
             IndexModel::builder()
-                .keys(doc! { "type": 1 })
+                .keys(doc! { "tx_type": 1 })
                 .build(),
         )
         .await;

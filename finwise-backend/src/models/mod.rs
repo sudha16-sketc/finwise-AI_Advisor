@@ -1,3 +1,4 @@
+// src/models/mod.rs
 pub mod analysis;
 pub mod piggy;
 pub mod profile;

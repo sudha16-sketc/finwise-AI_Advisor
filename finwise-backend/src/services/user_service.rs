@@ -1,6 +1,9 @@
+// src/services/user_service.rs
 use crate::db::Database;
 use crate::models::user::User;
 use crate::models::transactions::Transaction;
+use mongodb::bson::DateTime;
+
 
 use mongodb::{
     bson::{doc, DateTime},
@@ -54,7 +57,7 @@ pub async fn track_user(
             wallet_address: wallet_address.to_string(),
             tx_type: "connect".to_string(),
             amount: None,
-            created_at: Utc::now(),
+            created_at: DateTime::now(),
         };
 
         let _ = transactions
@@ -82,7 +85,7 @@ pub async fn log_transaction(
         wallet_address: wallet_address.to_string(),
         tx_type: tx_type.to_string(),
         amount,
-        created_at: Utc::now(),
+        created_at: DateTime::now(),
     };
 
     transactions

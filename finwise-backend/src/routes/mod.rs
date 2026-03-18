@@ -1,3 +1,4 @@
+// src/routes/mod.rs
 pub mod analyze;
 pub mod health;
 pub mod metrics;

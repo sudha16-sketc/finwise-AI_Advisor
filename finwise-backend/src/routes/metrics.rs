@@ -1,3 +1,4 @@
+// src/routes/metrics.rs
 use actix_web::{web, HttpResponse, Result};
 use serde_json::json;
 use crate::db::Database;
