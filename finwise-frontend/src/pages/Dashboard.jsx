@@ -14,6 +14,7 @@ import BudgetChart from "../components/BudgetChart";
 import SavingsChart from "../components/SavingsChart";
 import Txhistory from "../components/TxHistory";
 import { getStats } from "../services/stellarPiggy";
+import MetricsDashboard from "../components/MetricsDashboard";
 
 function StatCard({ Icon, label, value, sub, color }) {
   return (
