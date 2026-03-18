@@ -10,7 +10,7 @@ use bcrypt::{hash, verify, DEFAULT_COST};
 use std::env;
 use dotenvy::dotenv;
 use reqwest::Client;
-use mongodb::bson::DateTime;
+use chrono::Utc; // ✅ only chrono — no mongodb::bson::DateTime import
 
 mod routes;
 mod stellar;
@@ -28,6 +28,7 @@ struct SignupRequest {
     username: String,
     email: String,
     password: String,
+    #[allow(non_snake_case)]
     walletAddress: Option<String>,
 }
 
@@ -55,7 +56,8 @@ async fn main() -> std::io::Result<()> {
 
     println!("🚀 Server running at http://{}", bind_address);
     log::info!("🚀 Starting server at http://{}", bind_address);
-    log::info!("🌍 Stellar Network: {}",
+    log::info!(
+        "🌍 Stellar Network: {}",
         env::var("STELLAR_NETWORK").unwrap_or_else(|_| "TESTNET".to_string())
     );
 
@@ -74,7 +76,7 @@ async fn main() -> std::io::Result<()> {
     let secret_key = Key::from(
         env::var("SESSION_SECRET")
             .expect("SESSION_SECRET must be set")
-            .as_bytes()
+            .as_bytes(),
     );
 
     HttpServer::new(move || {
@@ -93,19 +95,18 @@ async fn main() -> std::io::Result<()> {
                     CookieSessionStore::default(),
                     secret_key.clone(),
                 )
-                // ✅ FIX: secure MUST be true when SameSite=None
                 .cookie_secure(true)
                 .cookie_same_site(actix_web::cookie::SameSite::None)
-                .build()
+                .build(),
             )
             .app_data(
-                web::JsonConfig::default()
-                    .error_handler(|err, _req| {
-                        let response = HttpResponse::BadRequest()
-                            .json(json!({ "error": format!("Invalid JSON: {}", err) }));
-                        actix_web::error::InternalError::from_response(err, response).into()
-                    })
+                web::JsonConfig::default().error_handler(|err, _req| {
+                    let response = HttpResponse::BadRequest()
+                        .json(json!({ "error": format!("Invalid JSON: {}", err) }));
+                    actix_web::error::InternalError::from_response(err, response).into()
+                }),
             )
+            // Auth routes (outside /api scope so they don't conflict)
             .route("/api/signup", web::post().to(signup))
             .route("/api/login", web::post().to(login))
             .route("/api/logout", web::post().to(logout))
@@ -120,7 +121,7 @@ async fn main() -> std::io::Result<()> {
                     .route("/piggy/deposit", web::post().to(routes::piggy::deposit))
                     .route("/piggy/stats/{user_id}", web::get().to(routes::piggy::get_stats))
                     .route("/metrics", web::get().to(routes::metrics::metrics_handler))
-                    .route("/track-user", web::post().to(routes::user::track_user_handler))
+                    .route("/track-user", web::post().to(routes::user::track_user_handler)),
             )
             .route("/", web::get().to(|| async {
                 HttpResponse::Ok().body("FinWise backend running 🚀")
@@ -133,6 +134,10 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
+
+/* =============================
+   AUTH HANDLERS
+============================= */
 
 async fn signup(
     db: web::Data<Database>,
@@ -148,7 +153,7 @@ async fn signup(
 
     if existing.is_some() {
         return HttpResponse::BadRequest()
-            .json(serde_json::json!({ "message": "Email already exists" }));
+            .json(json!({ "message": "Email already exists" }));
     }
 
     let hashed = hash(&form.password, DEFAULT_COST).unwrap();
@@ -159,7 +164,7 @@ async fn signup(
         email: form.email.clone(),
         password: hashed,
         wallet_address: form.walletAddress.clone(),
-        created_at: DateTime::now(),
+        created_at: Utc::now(), // ✅ chrono::DateTime<Utc>
         last_active: None,
         total_actions: 0,
     };
@@ -169,14 +174,14 @@ async fn signup(
     }
 
     let insert = collection.insert_one(new_user).await.unwrap();
-    let inserted_id = insert.inserted_id
+    let inserted_id = insert
+        .inserted_id
         .as_object_id()
         .expect("Expected ObjectId");
 
     session.insert("user_id", inserted_id).unwrap();
 
-    HttpResponse::Created()
-        .json(serde_json::json!({ "message": "Signup successful" }))
+    HttpResponse::Created().json(json!({ "message": "Signup successful" }))
 }
 
 async fn login(
@@ -196,19 +201,16 @@ async fn login(
             if let Some(user_id) = user.id {
                 session.insert("user_id", user_id).unwrap();
             }
-            return HttpResponse::Ok()
-                .json(serde_json::json!({ "message": "Login successful" }));
+            return HttpResponse::Ok().json(json!({ "message": "Login successful" }));
         }
     }
 
-    HttpResponse::BadRequest()
-        .json(serde_json::json!({ "message": "Invalid credentials" }))
+    HttpResponse::BadRequest().json(json!({ "message": "Invalid credentials" }))
 }
 
 async fn logout(session: actix_session::Session) -> HttpResponse {
     session.purge();
-    HttpResponse::Ok()
-        .json(serde_json::json!({ "message": "Logout successful" }))
+    HttpResponse::Ok().json(json!({ "message": "Logout successful" }))
 }
 
 async fn check_auth(
@@ -218,8 +220,7 @@ async fn check_auth(
     let user_id = match session.get::<ObjectId>("user_id") {
         Ok(Some(id)) => id,
         _ => {
-            return HttpResponse::Ok()
-                .json(serde_json::json!({ "authenticated": false }))
+            return HttpResponse::Ok().json(json!({ "authenticated": false }));
         }
     };
 
@@ -231,7 +232,7 @@ async fn check_auth(
         .unwrap();
 
     if let Some(user) = user {
-        return HttpResponse::Ok().json(serde_json::json!({
+        return HttpResponse::Ok().json(json!({
             "authenticated": true,
             "user": {
                 "username": user.username,
@@ -241,16 +242,18 @@ async fn check_auth(
         }));
     }
 
-    HttpResponse::Ok()
-        .json(serde_json::json!({ "authenticated": false }))
+    HttpResponse::Ok().json(json!({ "authenticated": false }))
 }
 
 async fn google_login() -> HttpResponse {
     let client_id = env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID not set");
-    let redirect_uri = "https://finwise-aiadvisor-production.up.railway.app/auth/google/callback";
+    let redirect_uri =
+        "https://finwise-aiadvisor-production.up.railway.app/auth/google/callback";
 
     let google_auth_url = format!(
-        "https://accounts.google.com/o/oauth2/v2/auth?client_id={}&redirect_uri={}&response_type=code&scope=openid%20email%20profile&access_type=offline&prompt=consent",
+        "https://accounts.google.com/o/oauth2/v2/auth\
+         ?client_id={}&redirect_uri={}&response_type=code\
+         &scope=openid%20email%20profile&access_type=offline&prompt=consent",
         client_id, redirect_uri
     );
 
@@ -262,14 +265,16 @@ async fn google_login() -> HttpResponse {
 async fn google_callback(
     db: web::Data<Database>,
     session: actix_session::Session,
-    query: web::Query<std::collections::HashMap<String, String>>
+    query: web::Query<std::collections::HashMap<String, String>>,
 ) -> HttpResponse {
-
+    // Handle Google returning an error (e.g. user denied permission)
     if let Some(error) = query.get("error") {
         log::error!("❌ Google OAuth returned error: {}", error);
         return HttpResponse::Found()
-            .append_header(("Location",
-                "https://finwise-ai-advisor.vercel.app/login?error=oauth_denied"))
+            .append_header((
+                "Location",
+                "https://finwise-ai-advisor.vercel.app/login?error=oauth_denied",
+            ))
             .finish();
     }
 
@@ -278,8 +283,10 @@ async fn google_callback(
         None => {
             log::error!("❌ No code in Google callback");
             return HttpResponse::Found()
-                .append_header(("Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=no_code"))
+                .append_header((
+                    "Location",
+                    "https://finwise-ai-advisor.vercel.app/login?error=no_code",
+                ))
                 .finish();
         }
     };
@@ -288,13 +295,17 @@ async fn google_callback(
     let client_secret = env::var("GOOGLE_CLIENT_SECRET").unwrap();
     let client = Client::new();
 
+    // Exchange code for token
     let token_response = client
         .post("https://oauth2.googleapis.com/token")
         .form(&[
             ("code", code.as_str()),
             ("client_id", client_id.as_str()),
             ("client_secret", client_secret.as_str()),
-            ("redirect_uri", "https://finwise-aiadvisor-production.up.railway.app/auth/google/callback"),
+            (
+                "redirect_uri",
+                "https://finwise-aiadvisor-production.up.railway.app/auth/google/callback",
+            ),
             ("grant_type", "authorization_code"),
         ])
         .send()
@@ -306,25 +317,35 @@ async fn google_callback(
             Err(e) => {
                 log::error!("❌ Failed to parse token response: {}", e);
                 return HttpResponse::Found()
-                    .append_header(("Location",
-                        "https://finwise-ai-advisor.vercel.app/login?error=token_parse_failed"))
+                    .append_header((
+                        "Location",
+                        "https://finwise-ai-advisor.vercel.app/login?error=token_parse_failed",
+                    ))
                     .finish();
             }
         },
         Err(e) => {
             log::error!("❌ Token exchange request failed: {}", e);
             return HttpResponse::Found()
-                .append_header(("Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=token_request_failed"))
+                .append_header((
+                    "Location",
+                    "https://finwise-ai-advisor.vercel.app/login?error=token_request_failed",
+                ))
                 .finish();
         }
     };
 
     if let Some(err) = token_res.get("error") {
-        log::error!("❌ Google token error: {} - {:?}", err, token_res.get("error_description"));
+        log::error!(
+            "❌ Google token error: {} - {:?}",
+            err,
+            token_res.get("error_description")
+        );
         return HttpResponse::Found()
-            .append_header(("Location",
-                "https://finwise-ai-advisor.vercel.app/login?error=token_failed"))
+            .append_header((
+                "Location",
+                "https://finwise-ai-advisor.vercel.app/login?error=token_failed",
+            ))
             .finish();
     }
 
@@ -333,12 +354,15 @@ async fn google_callback(
         None => {
             log::error!("❌ No access_token in response: {:?}", token_res);
             return HttpResponse::Found()
-                .append_header(("Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=no_access_token"))
+                .append_header((
+                    "Location",
+                    "https://finwise-ai-advisor.vercel.app/login?error=no_access_token",
+                ))
                 .finish();
         }
     };
 
+    // Get user info from Google
     let userinfo_response = client
         .get("https://www.googleapis.com/oauth2/v2/userinfo")
         .bearer_auth(&access_token)
@@ -351,16 +375,20 @@ async fn google_callback(
             Err(e) => {
                 log::error!("❌ Failed to parse userinfo response: {}", e);
                 return HttpResponse::Found()
-                    .append_header(("Location",
-                        "https://finwise-ai-advisor.vercel.app/login?error=userinfo_parse_failed"))
+                    .append_header((
+                        "Location",
+                        "https://finwise-ai-advisor.vercel.app/login?error=userinfo_parse_failed",
+                    ))
                     .finish();
             }
         },
         Err(e) => {
             log::error!("❌ Userinfo request failed: {}", e);
             return HttpResponse::Found()
-                .append_header(("Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=userinfo_failed"))
+                .append_header((
+                    "Location",
+                    "https://finwise-ai-advisor.vercel.app/login?error=userinfo_failed",
+                ))
                 .finish();
         }
     };
@@ -370,8 +398,10 @@ async fn google_callback(
         None => {
             log::error!("❌ No email in userinfo response: {:?}", user_info);
             return HttpResponse::Found()
-                .append_header(("Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=no_email"))
+                .append_header((
+                    "Location",
+                    "https://finwise-ai-advisor.vercel.app/login?error=no_email",
+                ))
                 .finish();
         }
     };
@@ -384,8 +414,10 @@ async fn google_callback(
         Err(e) => {
             log::error!("❌ MongoDB find_one failed: {}", e);
             return HttpResponse::Found()
-                .append_header(("Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=db_error"))
+                .append_header((
+                    "Location",
+                    "https://finwise-ai-advisor.vercel.app/login?error=db_error",
+                ))
                 .finish();
         }
     };
@@ -396,20 +428,21 @@ async fn google_callback(
             None => {
                 log::error!("❌ Existing user has no ObjectId");
                 return HttpResponse::Found()
-                    .append_header(("Location",
-                        "https://finwise-ai-advisor.vercel.app/login?error=user_id_missing"))
+                    .append_header((
+                        "Location",
+                        "https://finwise-ai-advisor.vercel.app/login?error=user_id_missing",
+                    ))
                     .finish();
             }
         }
     } else {
-        // ✅ FIX: wallet_address: None  (was: wallet_address UNIQUE which is invalid Rust)
         let new_user = User {
             id: None,
             username,
             email: email.clone(),
             password: "".into(),
             wallet_address: None,
-            created_at: DateTime::now(),
+            created_at: Utc::now(), // ✅ chrono::DateTime<Utc>
             last_active: None,
             total_actions: 0,
         };
@@ -420,16 +453,20 @@ async fn google_callback(
                 None => {
                     log::error!("❌ Inserted ID is not an ObjectId");
                     return HttpResponse::Found()
-                        .append_header(("Location",
-                            "https://finwise-ai-advisor.vercel.app/login?error=insert_id_error"))
+                        .append_header((
+                            "Location",
+                            "https://finwise-ai-advisor.vercel.app/login?error=insert_id_error",
+                        ))
                         .finish();
                 }
             },
             Err(e) => {
                 log::error!("❌ Failed to insert new user: {:?}", e);
                 return HttpResponse::Found()
-                    .append_header(("Location",
-                        "https://finwise-ai-advisor.vercel.app/login?error=insert_failed"))
+                    .append_header((
+                        "Location",
+                        "https://finwise-ai-advisor.vercel.app/login?error=insert_failed",
+                    ))
                     .finish();
             }
         }
@@ -438,8 +475,10 @@ async fn google_callback(
     if let Err(e) = session.insert("user_id", user_id) {
         log::error!("❌ Failed to insert session: {}", e);
         return HttpResponse::Found()
-            .append_header(("Location",
-                "https://finwise-ai-advisor.vercel.app/login?error=session_failed"))
+            .append_header((
+                "Location",
+                "https://finwise-ai-advisor.vercel.app/login?error=session_failed",
+            ))
             .finish();
     }
 

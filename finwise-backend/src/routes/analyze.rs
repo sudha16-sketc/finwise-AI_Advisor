@@ -1,7 +1,7 @@
+// src/routes/analyze.rs
 use actix_web::{web, HttpResponse};
 use chrono::Utc;
 use mongodb::bson::doc;
-use mongodb::bson::DateTime;
 
 use crate::db::{Database, collections};
 use crate::models::analysis::{AnalysisDocument, AnalyzeRequest, AnalyzeResponse, FinancialAdvice};
@@ -27,11 +27,10 @@ pub async fn analyze(
     let structured_data = parse_financial_text(&body.financial_text);
     log::info!("Structured data extracted for user {}", body.user_id);
 
-    // Step 2: Call Gemini API for advice
-    // Explicit type annotation to resolve E0282
-let ai = AiService::new();
-let advice: FinancialAdvice = ai.get_financial_advice(&structured_data).await?;
-    log::info!("Gemini advice received for user {}", body.user_id);
+    // Step 2: Call AI API for advice
+    let ai = AiService::new();
+    let advice: FinancialAdvice = ai.get_financial_advice(&structured_data).await?;
+    log::info!("AI advice received for user {}", body.user_id);
 
     // Step 3: Store analysis in MongoDB
     let analyses = db.collection::<AnalysisDocument>(collections::ANALYSES);
@@ -41,30 +40,35 @@ let advice: FinancialAdvice = ai.get_financial_advice(&structured_data).await?;
         original_text: body.financial_text.clone(),
         structured_data: structured_data.clone(),
         advice: advice.clone(),
-        created_at: DateTime::now(),
+        created_at: Utc::now(), // ✅ chrono::DateTime<Utc>
     };
 
     let insert_result = analyses.insert_one(&analysis_doc).await?;
-    let analysis_id = insert_result.inserted_id.as_object_id()
+    let analysis_id = insert_result
+        .inserted_id
+        .as_object_id()
         .map(|oid| oid.to_hex())
         .unwrap_or_default();
 
     // Step 4: Upsert user profile with latest advice
-    // Convert advice to Bson manually, mapping the error into AppError
+    // Serialize advice to BSON for use in raw doc! update
     let advice_bson = mongodb::bson::to_bson(&advice)
         .map_err(|e| AppError::OllamaApi(format!("Failed to serialize advice to BSON: {}", e)))?;
+
+    // Serialize chrono datetime to BSON for raw doc! update
+    let now_bson = mongodb::bson::to_bson(&Utc::now())
+        .map_err(|e| AppError::OllamaApi(format!("Failed to serialize datetime to BSON: {}", e)))?;
 
     let profiles = db.collection::<ProfileDocument>(collections::PROFILES);
     let filter = doc! { "user_id": &body.user_id };
     let update = doc! {
         "$set": {
             "latest_advice": advice_bson,
-            "updated_at": DateTime::now(),
+            "updated_at": now_bson,         // ✅ serialized from chrono, not bson::DateTime
         },
         "$inc": { "total_analyses": 1_i32 }
     };
 
-    // MongoDB 3.x API: update_one takes (filter, update) directly
     profiles
         .update_one(filter, update)
         .upsert(true)
