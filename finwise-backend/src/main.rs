@@ -5,7 +5,7 @@ use actix_cors::Cors;
 use actix_session::{SessionMiddleware, storage::CookieSessionStore};
 use actix_web::cookie::Key;
 use serde::Deserialize;
-use mongodb::bson::{doc, oid::ObjectId};
+use mongodb::bson::{doc, oid::ObjectId, DateTime as BsonDateTime};
 use bcrypt::{hash, verify, DEFAULT_COST};
 use std::env;
 use dotenvy::dotenv;
@@ -162,7 +162,7 @@ async fn signup(
         password: hashed,
         wallet_address: form.walletAddress.clone(),
         created_at: Utc::now(),
-        last_active: None,
+        last_active: Some(Utc::now()), // ✅ set on signup
         total_actions: 0,
     };
 
@@ -196,12 +196,14 @@ async fn login(
     if let Some(user) = user {
         if verify(&form.password, &user.password).unwrap_or(false) {
             if let Some(user_id) = user.id {
-                // ✅ Update last_active on login so active_24h/7d metrics work
-                let now_bson = mongodb::bson::to_bson(&Utc::now()).unwrap_or_default();
+                // ✅ BsonDateTime::now() writes a proper BSON Date, not a string
                 let _ = collection
                     .update_one(
                         doc! { "_id": user_id },
-                        doc! { "$set": { "last_active": &now_bson }, "$inc": { "total_actions": 1i64 } },
+                        doc! {
+                            "$set": { "last_active": BsonDateTime::now() },
+                            "$inc": { "total_actions": 1i64 }
+                        },
                     )
                     .await;
 
@@ -232,14 +234,12 @@ async fn check_auth(
 
     let collection = db.collection::<User>("users");
 
-    // ✅ Update last_active on every check-auth — this is what powers active_24h/7d metrics
-    // Every page load calls check-auth, so this accurately reflects recent activity
-    let now_bson = mongodb::bson::to_bson(&Utc::now()).unwrap_or_default();
+    // ✅ BsonDateTime::now() — writes { $date: "..." } BSON Date, queryable with $gte
     let _ = collection
         .update_one(
             doc! { "_id": user_id },
             doc! {
-                "$set": { "last_active": &now_bson },
+                "$set": { "last_active": BsonDateTime::now() },
                 "$inc": { "total_actions": 1i64 }
             },
         )
@@ -459,7 +459,7 @@ async fn google_callback(
             password: "".into(),
             wallet_address: None,
             created_at: Utc::now(),
-            last_active: None,
+            last_active: Some(Utc::now()),
             total_actions: 0,
         };
 
@@ -488,12 +488,14 @@ async fn google_callback(
         }
     };
 
-    // ✅ Update last_active on Google OAuth login too
-    let now_bson = mongodb::bson::to_bson(&Utc::now()).unwrap_or_default();
+    // ✅ BsonDateTime::now() for proper BSON Date
     let _ = users
         .update_one(
             doc! { "_id": user_id },
-            doc! { "$set": { "last_active": &now_bson }, "$inc": { "total_actions": 1i64 } },
+            doc! {
+                "$set": { "last_active": BsonDateTime::now() },
+                "$inc": { "total_actions": 1i64 }
+            },
         )
         .await;
 

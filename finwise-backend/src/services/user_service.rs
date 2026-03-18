@@ -2,7 +2,7 @@
 use crate::db::Database;
 use crate::models::user::User;
 use crate::models::transactions::Transaction;
-use mongodb::{bson::doc, Collection};
+use mongodb::{bson::{doc, DateTime as BsonDateTime}, Collection};
 use chrono::Utc;
 
 /// Track or update user activity (wallet-based)
@@ -15,9 +15,9 @@ pub async fn track_user(
 
     let filter = doc! { "wallet_address": wallet_address };
 
-    // Serialize chrono datetime to BSON for use inside raw doc! macros
-    let now_bson = mongodb::bson::to_bson(&Utc::now())
-        .map_err(|e| format!("DateTime serialize error: {}", e))?;
+    // ✅ BsonDateTime::now() writes a proper BSON Date { $date: ... }
+    // This is queryable with $gte/$lte unlike chrono strings
+    let now = BsonDateTime::now();
 
     let update = doc! {
         "$setOnInsert": {
@@ -25,11 +25,11 @@ pub async fn track_user(
             "email": format!("{}@stellar.finwise", &wallet_address[..20.min(wallet_address.len())]),
             "password": "",
             "wallet_address": wallet_address,
-            "created_at": &now_bson,
+            "created_at": now,
             "total_actions": 0i64
         },
         "$set": {
-            "last_active": &now_bson
+            "last_active": now
         },
         "$inc": {
             "total_actions": 1i64
@@ -44,13 +44,12 @@ pub async fn track_user(
         .map_err(|e| format!("DB error: {}", e))?;
 
     if let Some(user) = updated_user {
-        // Log a "connect" transaction
         let tx = Transaction {
             id: None,
             wallet_address: wallet_address.to_string(),
             tx_type: "connect".to_string(),
             amount: None,
-            created_at: Utc::now(), // ✅ chrono::DateTime<Utc>
+            created_at: Utc::now(),
         };
 
         transactions
@@ -78,7 +77,7 @@ pub async fn log_transaction(
         wallet_address: wallet_address.to_string(),
         tx_type: tx_type.to_string(),
         amount,
-        created_at: Utc::now(), // ✅ chrono::DateTime<Utc>
+        created_at: Utc::now(),
     };
 
     transactions
@@ -86,7 +85,6 @@ pub async fn log_transaction(
         .await
         .map_err(|e| format!("Tx insert error: {}", e))?;
 
-    // Update user activity
     track_user(db, wallet_address).await?;
 
     Ok(())

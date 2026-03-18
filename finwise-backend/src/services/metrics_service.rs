@@ -1,8 +1,7 @@
 // src/services/metrics_service.rs
 use crate::db::Database;
 use crate::models::user::User;
-use mongodb::bson::doc;
-use chrono::Utc;
+use mongodb::bson::{doc, DateTime as BsonDateTime};
 use futures_util::TryStreamExt;
 
 #[derive(serde::Serialize)]
@@ -18,55 +17,44 @@ pub struct Metrics {
 
 pub async fn get_metrics(db: &Database) -> Result<Metrics, String> {
     let users        = db.collection::<User>("users");
-    // Use Document for collections we only count — avoids needing typed models
     let transactions = db.collection::<mongodb::bson::Document>("transactions");
     let analyses     = db.collection::<mongodb::bson::Document>("analyses");
 
-    let now      = Utc::now();
-    let day_ago  = now - chrono::Duration::hours(24);
-    let week_ago = now - chrono::Duration::days(7);
-
-    // Serialize chrono to BSON — matches how last_active is stored
-    let day_ago_bson = mongodb::bson::to_bson(&day_ago)
-        .map_err(|e| format!("BSON serialize error: {}", e))?;
-    let week_ago_bson = mongodb::bson::to_bson(&week_ago)
-        .map_err(|e| format!("BSON serialize error: {}", e))?;
+    // ✅ BsonDateTime for $gte queries — matches what's stored after the fix
+    let now      = BsonDateTime::now();
+    let day_ago  = BsonDateTime::from_millis(now.timestamp_millis() - 24 * 60 * 60 * 1000);
+    let week_ago = BsonDateTime::from_millis(now.timestamp_millis() - 7 * 24 * 60 * 60 * 1000);
 
     let total_users = users
         .count_documents(doc! {})
         .await
         .map_err(|e| format!("DB error: {}", e))?;
 
-    // ✅ active_24h and active_7d now work because check_auth updates last_active
     let active_users_24h = users
-        .count_documents(doc! { "last_active": { "$gte": &day_ago_bson } })
+        .count_documents(doc! { "last_active": { "$gte": day_ago } })
         .await
         .unwrap_or(0);
 
     let active_users_7d = users
-        .count_documents(doc! { "last_active": { "$gte": &week_ago_bson } })
+        .count_documents(doc! { "last_active": { "$gte": week_ago } })
         .await
         .unwrap_or(0);
 
-    // All transactions (connect type logged on every wallet connect / check-auth)
     let total_transactions = transactions
         .count_documents(doc! {})
         .await
         .unwrap_or(0);
 
-    // Connect events specifically
     let total_connects = transactions
         .count_documents(doc! { "tx_type": "connect" })
         .await
         .unwrap_or(0);
 
-    // AI analyses run
     let total_analyses = analyses
         .count_documents(doc! {})
         .await
         .unwrap_or(0);
 
-    // Average actions per user via aggregation
     let avg_actions_per_user = if total_users > 0 {
         let pipeline = vec![
             doc! { "$group": { "_id": null, "total": { "$sum": "$total_actions" } } }
