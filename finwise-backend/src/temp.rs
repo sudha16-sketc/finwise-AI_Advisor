@@ -53,7 +53,7 @@ async fn main(
     // 3. Define the App Configuration
     let config = move |cfg: &mut web::ServiceConfig| {
         let cors = Cors::default()
-            .allowed_origin("https://stellar-journey-to-mastery.vercel.app")
+            .allowed_origin("https://finwise-aiadvisor-production.up.railway.app")
             .allowed_methods(vec!["GET", "POST", "OPTIONS"])
             .allowed_headers(vec!["Content-Type", "Authorization", "Accept"])
             .supports_credentials();
