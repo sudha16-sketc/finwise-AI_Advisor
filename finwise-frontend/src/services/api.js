@@ -1,69 +1,103 @@
+// src/services/api.js
 import axios from 'axios'
 
-const BASE_URL ='https://finwise-aiadvisor-production.up.railway.app'
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://finwise-aiadvisor-production.up.railway.app'
+
+console.log('[API] Base URL:', BASE_URL) // Debug: confirm which URL is being used
 
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30_000,
-  withCredentials: true,   
+  withCredentials: true,
 })
 
-// Log every request in dev
+// ── Interceptors ──────────────────────────────────────────────────────────────
+
 api.interceptors.request.use((config) => {
-  console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`)
+  console.log(`[API REQUEST] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
+  console.log('[API REQUEST] Payload:', config.data || config.params || 'none')
   return config
 })
 
-// Normalize errors to plain Error with a message string
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    console.log(`[API RESPONSE] ${res.status} ${res.config.url}`, res.data)
+    return res
+  },
   (err) => {
-    const message = err.response?.data?.error || err.message || 'An unknown error occurred'
+    console.error(`[API ERROR] ${err.config?.url}`, {
+      status: err.response?.status,
+      data: err.response?.data,
+      message: err.message,
+    })
+    const message = err.response?.data?.message || err.response?.data?.error || err.message || 'Unknown error'
     throw new Error(message)
   }
 )
 
+// ── API Methods ───────────────────────────────────────────────────────────────
+
 export const finwiseApi = {
-  /** POST /api/analyze — AI financial analysis */
-  analyze: async (payload) => {
-    const { data } = await api.post('/api/analyze', payload)
+
+  // Auth
+  signup: async ({ username, email, password, walletAddress }) => {
+    const { data } = await api.post('/api/signup', { username, email, password, walletAddress })
     return data
   },
 
-  /** POST /api/piggy/deposit */
-  deposit: async (payload) => {
-    const { data } = await api.post('/api/piggy/deposit', payload)
+  login: async ({ email, password }) => {
+    const { data } = await api.post('/api/login', { email, password })
     return data
   },
 
-  /** GET /api/piggy/stats/:userId */
-  getPiggyStats: async (userId) => {
-    const { data } = await api.get(`/api/piggy/stats/${userId}`)
+  logout: async () => {
+    const { data } = await api.post('/api/logout')
     return data
   },
 
-  /** GET /health */
-  health: async () => {
-    const { data } = await api.get('/health')
-    return data
-  },
-
-  /** GET /api/profile */
-  getProfile: async () => {
-    const { data } = await api.get('/api/profile')
-    return data
-  },
-
-  /** GET /api/check-auth */   
   checkAuth: async () => {
     const { data } = await api.get('/api/check-auth')
     return data
   },
 
-  /** GET /api/metrics - Dashboard metrics */
+  // Wallet / Stellar
+  getBalance: async (address) => {
+    const { data } = await api.get(`/api/balance/${address}`)
+    return data
+  },
+
+  getTransactions: async (address) => {
+    const { data } = await api.get(`/api/transactions/${address}`)
+    return data
+  },
+
+  sendTransaction: async (xdr) => {
+    const { data } = await api.post('/api/send', { xdr })
+    return data
+  },
+
+  // Features
+  analyze: async (payload) => {
+    const { data } = await api.post('/api/analyze', payload)
+    return data
+  },
+
+  getProfile: async () => {
+    const { data } = await api.get('/api/profile')
+    return data
+  },
+
   getMetrics: async () => {
     const { data } = await api.get('/api/metrics')
     return data
   },
+
+  // Health
+  health: async () => {
+    const { data } = await api.get('/health')
+    return data
+  },
 }
+
+export const API_BASE = BASE_URL  // export for use in WalletConnect.jsx & stellarService.js

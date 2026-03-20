@@ -18,18 +18,13 @@ pub struct User {
 
     pub wallet_address: Option<String>,
 
-    // ✅ Stored as BSON Date — enables $gte/$lte date range queries
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        with = "mongodb::bson::serde_helpers::chrono_datetime_as_bson_datetime_opt"
-    )]
+    // last_active is written via BsonDateTime::now() in doc! macros directly
+    // so we don't need special serde — just keep it optional for deserialization
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_active: Option<DateTime<Utc>>,
 
     #[serde(default = "default_total_actions")]
     pub total_actions: u64,
 
-    // ✅ Stored as BSON Date
-    #[serde(with = "mongodb::bson::serde_helpers::chrono_datetime_as_bson_datetime")]
     pub created_at: DateTime<Utc>,
 }

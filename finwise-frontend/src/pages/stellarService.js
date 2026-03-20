@@ -1,3 +1,4 @@
+// src/pages/stellarService.js
 import * as StellarSdk from "@stellar/stellar-sdk";
 
 import {
@@ -9,11 +10,12 @@ import {
 
 
 import axios from 'axios';
+import { API_BASE } from './api'
 
 // Stellar testnet configuration
 const TESTNET_URL = 'https://horizon-testnet.stellar.org';
 const server = new StellarSdk.Horizon.Server(TESTNET_URL);
-const BACKEND_API = 'https://finwise-aiadvisor-production.up.railway.app/api';
+const BACKEND_API = `${API_BASE}/api`
 
 /**
  * Check if Freighter wallet is installed

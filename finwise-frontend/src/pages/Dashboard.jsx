@@ -6,7 +6,6 @@ import {
   Star,
   Loader2,
   RefreshCw,
-  Wallet,
 } from "lucide-react";
 import { finwiseApi } from "../services/api";
 import RiskBadge from "../components/RiskBadge";
@@ -36,15 +35,13 @@ function fromContractAmount(value) {
   return Number(value) / 10 ** DECIMALS;
 }
 
-// Same pattern as TxHistory and SendTransaction —
-// just receive publicKey as a prop, no internal wallet resolution needed
 export default function Dashboard({ publicKey }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   const fetchProfile = useCallback(async () => {
-    if (!publicKey) return;   // same guard TxHistory uses
+    if (!publicKey) return;
 
     setLoading(true);
     setError(null);
@@ -75,25 +72,9 @@ export default function Dashboard({ publicKey }) {
     }
   }, [publicKey]);
 
-  // Same pattern as TxHistory's useEffect
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
-
-  // Same pattern as TxHistory and SendTransaction — return null if no key yet
-  if (!publicKey) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-sky-50 px-4">
-        <div className="text-center bg-white rounded-3xl p-10 shadow-sm border border-slate-100 max-w-md">
-          <Wallet className="w-12 h-12 text-sky-400 mx-auto mb-4" />
-          <p className="text-slate-700 font-semibold mb-2">Wallet not connected</p>
-          <p className="text-slate-500 text-sm">
-            Please connect your wallet from the home page to view your dashboard stats.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -222,7 +203,7 @@ export default function Dashboard({ publicKey }) {
           </div>
         )}
 
-<MetricsDashboard />
+        <MetricsDashboard />
         <div>
           <Txhistory publicKey={publicKey} />
         </div>

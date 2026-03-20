@@ -33,7 +33,7 @@ import {
 import { formatAddress } from "../pages/stellarService";
 import "./WalletConnect.css";
 
-const API = "https://finwise-aiadvisor-production.up.railway.app";
+import { API_BASE as API } from "../services/api";
 
 function WalletConnect({ publicKey, setPublicKey, isConnected, setIsConnected }) {
   // ── Auth state ──────────────────────────────────────────────────────────

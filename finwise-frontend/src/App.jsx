@@ -12,41 +12,47 @@ import TxHistory from "./components/TxHistory";
 import { getConnectedAddress, onKitEvent, KitEventType } from "./services/walletManager";
 
 export default function App() {
-  // Seed from localStorage so desktop users who previously connected
-  // don't see a flash of "disconnected" on reload.
-  // But we also re-check the kit session below so mobile/WalletConnect
-  // sessions are restored correctly even when localStorage is stale.
   const [publicKey, setPublicKey] = useState(
     () => localStorage.getItem("publicKey") || null,
   );
   const [isConnected, setIsConnected] = useState(
     () => !!localStorage.getItem("publicKey"),
   );
+  const [walletLoading, setWalletLoading] = useState(true); // NEW
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
   const [transactionStatus, setTransactionStatus] = useState(null);
   const [transactionData, setTransactionData] = useState(null);
   const [balanceRefreshTrigger, setBalanceRefreshTrigger] = useState(0);
 
-  // ── Sync wallet state from the kit ──────────────────────────────────────
-  //
-  // This is the core fix for mobile. The Stellar Wallets Kit manages its own
-  // session (especially WalletConnect), and does NOT write to localStorage.
-  // So App must:
-  //   1. Ask the kit for the current address on mount (covers page reload)
-  //   2. Listen to kit events for connect / disconnect during the session
-  //
   useEffect(() => {
-    // 1. Restore kit session on mount (async — WalletConnect takes ~1-2s on mobile)
-    getConnectedAddress().then((address) => {
-      if (address) {
-        syncWalletState(address);
-      } else {
-        // Kit has no session — clear any stale localStorage from a previous visit
-        clearWalletState();
-      }
-    });
+    let cancelled = false;
 
-    // 2. Listen for future connect / disconnect events from the kit modal
+    getConnectedAddress()
+      .then((address) => {
+        if (cancelled) return;
+        if (address) {
+          syncWalletState(address);
+        } else {
+          // Only clear if localStorage also has nothing —
+          // don't wipe a valid localStorage session just because
+          // the kit hasn't restored yet
+          const stored = localStorage.getItem("publicKey");
+          if (!stored) {
+            clearWalletState();
+          }
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          // On error, trust whatever is in localStorage
+          const stored = localStorage.getItem("publicKey");
+          if (!stored) clearWalletState();
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setWalletLoading(false); // NEW — done resolving
+      });
+
     const unsub = onKitEvent((event) => {
       if (event.eventType === KitEventType.STATE_UPDATED) {
         const addr = event.payload?.address;
@@ -61,14 +67,16 @@ export default function App() {
       }
     });
 
-    return unsub;
+    return () => {
+      cancelled = true;
+      unsub();
+    };
   }, []);
 
-  // Centralised helpers so localStorage and React state always stay in sync
   const syncWalletState = (address) => {
     setPublicKey(address);
     setIsConnected(true);
-    localStorage.setItem("publicKey", address); // keep for fast desktop reload
+    localStorage.setItem("publicKey", address);
   };
 
   const clearWalletState = () => {
@@ -77,7 +85,6 @@ export default function App() {
     localStorage.removeItem("publicKey");
   };
 
-  // ── Used by Signin page (email/password login restores wallet address) ───
   const handleSetPublicKey = (key) => {
     if (key) {
       syncWalletState(key);
@@ -91,7 +98,6 @@ export default function App() {
     else setIsConnected(true);
   };
 
-  // ── Transaction callbacks ────────────────────────────────────────────────
   const handleTransactionComplete = (result) => {
     setTransactionStatus("success");
     setTransactionData({
@@ -128,7 +134,11 @@ export default function App() {
             <Route
               path="/dashboard"
               element={
-                <Dashboard publicKey={publicKey} isConnected={isConnected} />
+                <Dashboard
+                  publicKey={publicKey}
+                  isConnected={isConnected}
+                  walletLoading={walletLoading} // NEW
+                />
               }
             />
             <Route path="/piggy" element={<PiggyBank />} />
