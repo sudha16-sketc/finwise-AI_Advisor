@@ -10,7 +10,7 @@ import {
 
 
 import axios from 'axios';
-import { API_BASE } from './api'
+import { API_BASE } from '../services/api'
 
 // Stellar testnet configuration
 const TESTNET_URL = 'https://horizon-testnet.stellar.org';
