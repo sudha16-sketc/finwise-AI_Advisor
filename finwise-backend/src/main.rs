@@ -95,8 +95,10 @@ async fn main() -> std::io::Result<()> {
                     CookieSessionStore::default(),
                     secret_key.clone(),
                 )
+                .cookie_name("finwise_session".to_string())
                 .cookie_secure(true)
-                .cookie_same_site(actix_web::cookie::SameSite::None)
+                .cookie_same_site(SameSite::None)
+                .cookie_domain(Some("finwise-ai-advisor.onrender.com".to_string()))
                 .build(),
             )
             .app_data(
