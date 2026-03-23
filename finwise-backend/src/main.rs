@@ -3,7 +3,7 @@ use serde_json::json;
 use actix_web::{middleware, web, App, HttpServer, HttpResponse};
 use actix_cors::Cors;
 use actix_session::{SessionMiddleware, storage::CookieSessionStore};
-use actix_web::cookie::Key;
+use actix_web::cookie::{Key, SameSite};
 use serde::Deserialize;
 use mongodb::bson::{doc, oid::ObjectId, DateTime as BsonDateTime};
 use bcrypt::{hash, verify, DEFAULT_COST};
@@ -11,6 +11,7 @@ use std::env;
 use dotenvy::dotenv;
 use reqwest::Client;
 use chrono::Utc;
+
 
 mod routes;
 mod stellar;
