@@ -267,7 +267,7 @@ async fn check_auth(
 async fn google_login() -> HttpResponse {
     let client_id = env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID not set");
     let redirect_uri =
-        "https://finwise-aiadvisor-production.up.railway.app/auth/google/callback";
+        "https://finwise-ai-advisor.onrender.com/auth/google/callback";
 
     let google_auth_url = format!(
         "https://accounts.google.com/o/oauth2/v2/auth\
@@ -321,7 +321,7 @@ async fn google_callback(
             ("client_secret", client_secret.as_str()),
             (
                 "redirect_uri",
-                "https://finwise-aiadvisor-production.up.railway.app/auth/google/callback",
+                "https://finwise-ai-advisor.onrender.com/auth/google/callback",
             ),
             ("grant_type", "authorization_code"),
         ])

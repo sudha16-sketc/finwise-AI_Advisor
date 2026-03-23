@@ -2,15 +2,15 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://finwise-aiadvisor-production.up.railway.app/api/:path*"
+      "destination": "https://finwise-ai-advisor.onrender.com/api/:path*"
     },
     {
       "source": "/auth/:path*",
-      "destination": "https://finwise-aiadvisor-production.up.railway.app/auth/:path*"
+      "destination": "https://finwise-ai-advisor.onrender.com/auth/:path*"
     },
     {
       "source": "/health",
-      "destination": "https://finwise-aiadvisor-production.up.railway.app/health"
+      "destination": "https://finwise-ai-advisor.onrender.com/health"
     },
     {
       "source": "/(.*)",

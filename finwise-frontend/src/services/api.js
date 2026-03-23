@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://finwise-aiadvisor-production.up.railway.app'
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://finwise-ai-advisor.onrender.com'
 
 console.log('[API] Base URL:', BASE_URL) // Debug: confirm which URL is being used
 
