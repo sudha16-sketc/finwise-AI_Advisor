@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+rand = "0.8"
 actix-web = { version = "4", features = ["cookies"] }
 actix-cors = "0.7"
 actix-session = { version = "0.9", features = ["cookie-session"] }
@@ -35,4 +36,3 @@ target-dir = "target"
 [profile.release]
 opt-level = 2
 
-rand = "0.8"
