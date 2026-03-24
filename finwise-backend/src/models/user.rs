@@ -25,7 +25,4 @@ pub struct User {
     pub total_actions: i64,
 
     pub created_at: BsonDateTime,
-
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub oauth_token: Option<String>,
 }
