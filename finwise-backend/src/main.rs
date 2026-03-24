@@ -10,6 +10,7 @@ use bcrypt::{hash, verify, DEFAULT_COST};
 use std::env;
 use dotenvy::dotenv;
 use reqwest::Client;
+use rand::Rng;
 
 mod routes;
 mod stellar;
@@ -35,6 +36,11 @@ struct SignupRequest {
 struct LoginRequest {
     email: String,
     password: String,
+}
+
+#[derive(Deserialize)]
+struct TokenQuery {
+    token: String,
 }
 
 #[actix_web::main]
@@ -97,7 +103,7 @@ async fn main() -> std::io::Result<()> {
                 .cookie_name("finwise_session".to_string())
                 .cookie_secure(true)
                 .cookie_same_site(SameSite::None)
-                .cookie_domain(Some("finwise-ai-advisor.onrender.com".to_string()))
+                // Removed .cookie_domain() — was preventing cross-site cookie from being sent
                 .build(),
             )
             .app_data(
@@ -111,6 +117,7 @@ async fn main() -> std::io::Result<()> {
             .route("/api/login", web::post().to(login))
             .route("/api/logout", web::post().to(logout))
             .route("/api/check-auth", web::get().to(check_auth))
+            .route("/api/verify-token", web::get().to(verify_token))
             .service(
                 web::scope("/api")
                     .route("/balance/{address}", web::get().to(routes::routes::get_balance))
@@ -165,6 +172,7 @@ async fn signup(
         created_at: BsonDateTime::now(),
         last_active: Some(BsonDateTime::now()),
         total_actions: 0,
+        oauth_token: None,
     };
 
     if let Some(wallet) = &form.walletAddress {
@@ -263,6 +271,62 @@ async fn check_auth(
     HttpResponse::Ok().json(json!({ "authenticated": false }))
 }
 
+/// Exchange a one-time OAuth token for a session cookie.
+/// Called by the frontend /auth/callback page with credentials: "include".
+/// This is the correct way to set a cross-site session cookie — via a direct
+/// credentialed fetch, NOT via a redirect (browsers block cookies set during redirects).
+async fn verify_token(
+    db: web::Data<Database>,
+    session: actix_session::Session,
+    query: web::Query<TokenQuery>,
+) -> HttpResponse {
+    let users = db.collection::<User>("users");
+
+    let user = match users.find_one(doc! { "oauth_token": &query.token }).await {
+        Ok(Some(u)) => u,
+        Ok(None) => {
+            log::warn!("⚠️ verify_token: token not found or already used");
+            return HttpResponse::Unauthorized().json(json!({ "authenticated": false }));
+        }
+        Err(e) => {
+            log::error!("❌ verify_token DB error: {}", e);
+            return HttpResponse::InternalServerError().json(json!({ "authenticated": false }));
+        }
+    };
+
+    let user_id = match user.id {
+        Some(id) => id,
+        None => {
+            log::error!("❌ verify_token: user has no ObjectId");
+            return HttpResponse::InternalServerError().json(json!({ "authenticated": false }));
+        }
+    };
+
+    // Clear the one-time token immediately so it cannot be reused
+    let _ = users.update_one(
+        doc! { "_id": user_id },
+        doc! { "$unset": { "oauth_token": "" } },
+    ).await;
+
+    // Set session — this response goes directly back to the browser via a
+    // credentialed fetch, so Set-Cookie works correctly cross-site
+    if let Err(e) = session.insert("user_id", user_id) {
+        log::error!("❌ verify_token session insert failed: {}", e);
+        return HttpResponse::InternalServerError().json(json!({ "authenticated": false }));
+    }
+
+    log::info!("✅ verify_token success for user {}", user_id);
+
+    HttpResponse::Ok().json(json!({
+        "authenticated": true,
+        "user": {
+            "username": user.username,
+            "email": user.email,
+            "wallet_address": user.wallet_address
+        }
+    }))
+}
+
 async fn google_login() -> HttpResponse {
     let client_id = env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID not set");
     let redirect_uri = "https://finwise-ai-advisor.onrender.com/auth/google/callback";
@@ -281,7 +345,7 @@ async fn google_login() -> HttpResponse {
 
 async fn google_callback(
     db: web::Data<Database>,
-    session: actix_session::Session,
+    _session: actix_session::Session,
     query: web::Query<std::collections::HashMap<String, String>>,
 ) -> HttpResponse {
     if let Some(error) = query.get("error") {
@@ -459,6 +523,7 @@ async fn google_callback(
             created_at: BsonDateTime::now(),
             last_active: Some(BsonDateTime::now()),
             total_actions: 0,
+            oauth_token: None,
         };
 
         match users.insert_one(new_user).await {
@@ -486,29 +551,33 @@ async fn google_callback(
         }
     };
 
-    let _ = users
-        .update_one(
-            doc! { "_id": user_id },
-            doc! {
-                "$set": { "last_active": BsonDateTime::now() },
-                "$inc": { "total_actions": 1i64 }
+    // Generate a one-time token to hand off to the frontend.
+    // The frontend /auth/callback page will call /api/verify-token?token=...
+    // with credentials: "include" — this properly sets the session cookie
+    // cross-site unlike a redirect which browsers block cookies on.
+    let token: String = rand::thread_rng()
+        .sample_iter(&rand::distributions::Alphanumeric)
+        .take(64)
+        .map(char::from)
+        .collect();
+
+    let _ = users.update_one(
+        doc! { "_id": user_id },
+        doc! {
+            "$set": {
+                "last_active": BsonDateTime::now(),
+                "oauth_token": &token
             },
-        )
-        .await;
+            "$inc": { "total_actions": 1i64 }
+        },
+    ).await;
 
-    if let Err(e) = session.insert("user_id", user_id) {
-        log::error!("❌ Failed to insert session: {}", e);
-        return HttpResponse::Found()
-            .append_header((
-                "Location",
-                "https://finwise-ai-advisor.vercel.app/login?error=session_failed",
-            ))
-            .finish();
-    }
-
-    log::info!("✅ Google OAuth success for {}", email);
+    log::info!("✅ Google OAuth callback done for {}, redirecting to frontend with token", email);
 
     HttpResponse::Found()
-        .append_header(("Location", "https://finwise-ai-advisor.vercel.app/dashboard"))
+        .append_header((
+            "Location",
+            format!("https://finwise-ai-advisor.vercel.app/auth/callback?token={}", token),
+        ))
         .finish()
 }

@@ -10,6 +10,7 @@ import About from "./pages/About";
 import SendTransaction from "./components/SendTransaction";
 import TxHistory from "./components/TxHistory";
 import { getConnectedAddress, onKitEvent, KitEventType } from "./services/walletManager";
+import AuthCallback from "./pages/AuthCallback";
 
 export default function App() {
   const [publicKey, setPublicKey] = useState(
@@ -181,6 +182,7 @@ export default function App() {
                 />
               }
             />
+            <Route path="/auth/callback" element={<AuthCallback />} />
           </Routes>
         </main>
       </div>
