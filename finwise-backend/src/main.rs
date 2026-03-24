@@ -88,8 +88,8 @@ async fn main() -> std::io::Result<()> {
         let cors = Cors::default()
             .allowed_origin("https://finwise-ai-advisor.vercel.app")
             .allowed_methods(vec!["GET", "POST", "OPTIONS"])
-            .allowed_headers(vec!["Content-Type", "Authorization", "Accept"])
-            .supports_credentials();
+            .allowed_headers(vec!["Content-Type", "Authorization"])
+            .supports_credentials();   
 
         App::new()
             .app_data(db_data.clone())
@@ -103,7 +103,6 @@ async fn main() -> std::io::Result<()> {
                 .cookie_name("finwise_session".to_string())
                 .cookie_secure(true)
                 .cookie_same_site(SameSite::None)
-                .cookie_domain(Some("finwise-ai-advisor.onrender.com".to_string())) 
                 .build()
             )
             .app_data(
