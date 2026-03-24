@@ -86,9 +86,11 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("https://finwise-ai-advisor.vercel.app")
+            .allowed_origin_fn(|origin, _req_head| {
+                origin.as_bytes().starts_with(b"https://finwise-ai-advisor.vercel.app")
+            })
             .allowed_methods(vec!["GET", "POST", "OPTIONS"])
-            .allowed_headers(vec!["Content-Type", "Authorization"])
+            .allowed_headers(vec!["*"])
             .supports_credentials();   
 
         App::new()
