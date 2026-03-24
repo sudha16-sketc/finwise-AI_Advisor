@@ -5,10 +5,6 @@
       "destination": "https://finwise-ai-advisor.onrender.com/api/:path*"
     },
     {
-      "source": "/auth/:path*",
-      "destination": "https://finwise-ai-advisor.onrender.com/auth/:path*"
-    },
-    {
       "source": "/health",
       "destination": "https://finwise-ai-advisor.onrender.com/health"
     },
