@@ -1,9 +1,9 @@
 // src/models/user.rs
 use serde::{Deserialize, Serialize};
 use mongodb::bson::oid::ObjectId;
-use chrono::{DateTime, Utc};
+use mongodb::bson::DateTime as BsonDateTime;
 
-fn default_total_actions() -> u64 {
+fn default_total_actions() -> i64 {
     0
 }
 
@@ -18,13 +18,11 @@ pub struct User {
 
     pub wallet_address: Option<String>,
 
-    // last_active is written via BsonDateTime::now() in doc! macros directly
-    // so we don't need special serde — just keep it optional for deserialization
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub last_active: Option<DateTime<Utc>>,
+    pub last_active: Option<BsonDateTime>,
 
     #[serde(default = "default_total_actions")]
-    pub total_actions: u64,
+    pub total_actions: i64,
 
-    pub created_at: DateTime<Utc>,
+    pub created_at: BsonDateTime,
 }

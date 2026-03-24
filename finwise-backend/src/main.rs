@@ -10,8 +10,6 @@ use bcrypt::{hash, verify, DEFAULT_COST};
 use std::env;
 use dotenvy::dotenv;
 use reqwest::Client;
-use chrono::Utc;
-
 
 mod routes;
 mod stellar;
@@ -164,8 +162,8 @@ async fn signup(
         email: form.email.clone(),
         password: hashed,
         wallet_address: form.walletAddress.clone(),
-        created_at: Utc::now(),
-        last_active: Some(Utc::now()), // ✅ set on signup
+        created_at: BsonDateTime::now(),
+        last_active: Some(BsonDateTime::now()),
         total_actions: 0,
     };
 
@@ -199,7 +197,6 @@ async fn login(
     if let Some(user) = user {
         if verify(&form.password, &user.password).unwrap_or(false) {
             if let Some(user_id) = user.id {
-                // ✅ BsonDateTime::now() writes a proper BSON Date, not a string
                 let _ = collection
                     .update_one(
                         doc! { "_id": user_id },
@@ -237,7 +234,6 @@ async fn check_auth(
 
     let collection = db.collection::<User>("users");
 
-    // ✅ BsonDateTime::now() — writes { $date: "..." } BSON Date, queryable with $gte
     let _ = collection
         .update_one(
             doc! { "_id": user_id },
@@ -269,8 +265,7 @@ async fn check_auth(
 
 async fn google_login() -> HttpResponse {
     let client_id = env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID not set");
-    let redirect_uri =
-        "https://finwise-ai-advisor.onrender.com/auth/google/callback";
+    let redirect_uri = "https://finwise-ai-advisor.onrender.com/auth/google/callback";
 
     let google_auth_url = format!(
         "https://accounts.google.com/o/oauth2/v2/auth\
@@ -461,8 +456,8 @@ async fn google_callback(
             email: email.clone(),
             password: "".into(),
             wallet_address: None,
-            created_at: Utc::now(),
-            last_active: Some(Utc::now()),
+            created_at: BsonDateTime::now(),
+            last_active: Some(BsonDateTime::now()),
             total_actions: 0,
         };
 
@@ -491,7 +486,6 @@ async fn google_callback(
         }
     };
 
-    // ✅ BsonDateTime::now() for proper BSON Date
     let _ = users
         .update_one(
             doc! { "_id": user_id },
