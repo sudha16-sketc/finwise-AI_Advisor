@@ -103,8 +103,8 @@ async fn main() -> std::io::Result<()> {
                 .cookie_name("finwise_session".to_string())
                 .cookie_secure(true)
                 .cookie_same_site(SameSite::None)
-                // Removed .cookie_domain() — was preventing cross-site cookie from being sent
-                .build(),
+                .cookie_domain(Some("finwise-ai-advisor.onrender.com".to_string())) 
+                .build()
             )
             .app_data(
                 web::JsonConfig::default().error_handler(|err, _req| {
