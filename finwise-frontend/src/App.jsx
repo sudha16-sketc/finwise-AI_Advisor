@@ -9,7 +9,6 @@ import Signin from "./pages/Signin";
 import About from "./pages/About";
 import SendTransaction from "./components/SendTransaction";
 import TxHistory from "./components/TxHistory";
-import AuthCallback from "./pages/AuthCallback";
 import { getConnectedAddress, onKitEvent, KitEventType } from "./services/walletManager";
 import { API_BASE } from "./services/api";
 
@@ -196,12 +195,6 @@ export default function App() {
                   isAuthenticated={isAuthenticated}        
                   setIsAuthenticated={setIsAuthenticated}  
                 />
-              }
-            />
-            <Route
-              path="/auth/callback"
-              element={
-                <AuthCallback setIsAuthenticated={setIsAuthenticated} />  
               }
             />
           </Routes>
