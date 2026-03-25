@@ -1,4 +1,3 @@
-// src/utils/mod.rs
 use actix_web::HttpResponse;
 use thiserror::Error;
 
@@ -25,16 +24,21 @@ pub enum AppError {
     #[error("Not found: {0}")]
     NotFound(String),
 
-     #[error("Unauthorized: {0}")]
-    Unauthorized(String), 
+    #[error("Unauthorized: {0}")]
+    Unauthorized(String),
 }
-
 
 impl actix_web::ResponseError for AppError {
     fn error_response(&self) -> HttpResponse {
         match self {
             AppError::Validation(msg) | AppError::NotFound(msg) => {
                 HttpResponse::BadRequest().json(serde_json::json!({
+                    "error": msg,
+                    "success": false
+                }))
+            }
+            AppError::Unauthorized(msg) => {
+                HttpResponse::Unauthorized().json(serde_json::json!({
                     "error": msg,
                     "success": false
                 }))
@@ -57,3 +61,6 @@ impl actix_web::ResponseError for AppError {
 }
 
 pub type AppResult<T> = Result<T, AppError>;
+
+pub mod jwt;
+pub mod auth_extractor;

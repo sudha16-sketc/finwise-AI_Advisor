@@ -1,20 +1,23 @@
-// src/services/api.js
 import axios from 'axios'
+import { authStorage } from './auth'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://finwise-ai-advisor.onrender.com'
 
-console.log('[API] Base URL:', BASE_URL) // Debug: confirm which URL is being used
+console.log('[API] Base URL:', BASE_URL)
 
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30_000,
-  withCredentials: true,
+  // withCredentials removed — no longer using cookies
 })
 
-// ── Interceptors ──────────────────────────────────────────────────────────────
-
+// Attach JWT to every request automatically
 api.interceptors.request.use((config) => {
+  const token = authStorage.getToken()
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`
+  }
   console.log(`[API REQUEST] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
   console.log('[API REQUEST] Payload:', config.data || config.params || 'none')
   return config
@@ -31,27 +34,36 @@ api.interceptors.response.use(
       data: err.response?.data,
       message: err.message,
     })
-    const message = err.response?.data?.message || err.response?.data?.error || err.message || 'Unknown error'
+    // If token is expired or invalid, clear it and redirect to login
+    if (err.response?.status === 401) {
+      authStorage.removeToken()
+      window.location.href = '/login'
+    }
+    const message =
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      err.message ||
+      'Unknown error'
     throw new Error(message)
   }
 )
 
-// ── API Methods ───────────────────────────────────────────────────────────────
-
 export const finwiseApi = {
-
   // Auth
   signup: async ({ username, email, password, walletAddress }) => {
     const { data } = await api.post('/api/signup', { username, email, password, walletAddress })
+    if (data.token) authStorage.setToken(data.token)
     return data
   },
 
   login: async ({ email, password }) => {
     const { data } = await api.post('/api/login', { email, password })
+    if (data.token) authStorage.setToken(data.token)
     return data
   },
 
   logout: async () => {
+    authStorage.removeToken()
     const { data } = await api.post('/api/logout')
     return data
   },
@@ -100,4 +112,4 @@ export const finwiseApi = {
   },
 }
 
-export const API_BASE = BASE_URL  // export for use in WalletConnect.jsx & stellarService.js
+export const API_BASE = BASE_URL

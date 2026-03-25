@@ -1,9 +1,6 @@
-// src/main.rs
 use serde_json::json;
 use actix_web::{middleware, web, App, HttpServer, HttpResponse};
 use actix_cors::Cors;
-use actix_session::{SessionMiddleware, storage::CookieSessionStore};
-use actix_web::cookie::{Key, SameSite};
 use serde::Deserialize;
 use mongodb::bson::{doc, oid::ObjectId, DateTime as BsonDateTime};
 use bcrypt::{hash, verify, DEFAULT_COST};
@@ -21,6 +18,8 @@ mod utils;
 
 use db::Database;
 use models::user::User;
+use utils::jwt::create_jwt;
+use utils::auth_extractor::AuthUser;
 
 #[derive(Deserialize)]
 struct SignupRequest {
@@ -44,6 +43,12 @@ async fn main() -> std::io::Result<()> {
 
     let _mongo_uri = env::var("MONGODB_URI").unwrap_or_else(|_| {
         eprintln!("❌ MONGODB_URI not set in .env");
+        std::process::exit(1);
+    });
+
+    // Validate JWT_SECRET is set at startup
+    env::var("JWT_SECRET").unwrap_or_else(|_| {
+        eprintln!("❌ JWT_SECRET not set in .env");
         std::process::exit(1);
     });
 
@@ -72,12 +77,6 @@ async fn main() -> std::io::Result<()> {
 
     let db_data = web::Data::new(db);
 
-    let secret_key = Key::from(
-        env::var("SESSION_SECRET")
-            .expect("SESSION_SECRET must be set")
-            .as_bytes(),
-    );
-
     HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin("https://finwise-ai-advisor.vercel.app")
@@ -89,17 +88,6 @@ async fn main() -> std::io::Result<()> {
             .app_data(db_data.clone())
             .wrap(cors)
             .wrap(middleware::Logger::default())
-            .wrap(
-                SessionMiddleware::builder(
-                    CookieSessionStore::default(),
-                    secret_key.clone(),
-                )
-                .cookie_name("finwise_session".to_string())
-                .cookie_secure(true)
-                .cookie_same_site(SameSite::None)
-                .cookie_domain(Some("finwise-ai-advisor.onrender.com".to_string()))
-                .build(),
-            )
             .app_data(
                 web::JsonConfig::default().error_handler(|err, _req| {
                     let response = HttpResponse::BadRequest()
@@ -139,7 +127,6 @@ async fn main() -> std::io::Result<()> {
 
 async fn signup(
     db: web::Data<Database>,
-    session: actix_session::Session,
     form: web::Json<SignupRequest>,
 ) -> HttpResponse {
     let collection = db.collection::<User>("users");
@@ -177,14 +164,23 @@ async fn signup(
         .as_object_id()
         .expect("Expected ObjectId");
 
-    session.insert("user_id", inserted_id).unwrap();
+    let token = match create_jwt(&inserted_id) {
+        Ok(t) => t,
+        Err(e) => {
+            log::error!("❌ Failed to create JWT: {}", e);
+            return HttpResponse::InternalServerError()
+                .json(json!({ "message": "Failed to create session" }));
+        }
+    };
 
-    HttpResponse::Created().json(json!({ "message": "Signup successful" }))
+    HttpResponse::Created().json(json!({
+        "message": "Signup successful",
+        "token": token
+    }))
 }
 
 async fn login(
     db: web::Data<Database>,
-    session: actix_session::Session,
     form: web::Json<LoginRequest>,
 ) -> HttpResponse {
     let collection = db.collection::<User>("users");
@@ -207,36 +203,40 @@ async fn login(
                     )
                     .await;
 
-                session.insert("user_id", user_id).unwrap();
+                let token = match create_jwt(&user_id) {
+                    Ok(t) => t,
+                    Err(e) => {
+                        log::error!("❌ Failed to create JWT: {}", e);
+                        return HttpResponse::InternalServerError()
+                            .json(json!({ "message": "Failed to create session" }));
+                    }
+                };
+
+                return HttpResponse::Ok().json(json!({
+                    "message": "Login successful",
+                    "token": token
+                }));
             }
-            return HttpResponse::Ok().json(json!({ "message": "Login successful" }));
         }
     }
 
     HttpResponse::BadRequest().json(json!({ "message": "Invalid credentials" }))
 }
 
-async fn logout(session: actix_session::Session) -> HttpResponse {
-    session.purge();
+async fn logout() -> HttpResponse {
+    // JWT is stateless — client just deletes the token
     HttpResponse::Ok().json(json!({ "message": "Logout successful" }))
 }
 
 async fn check_auth(
     db: web::Data<Database>,
-    session: actix_session::Session,
+    auth: AuthUser,
 ) -> HttpResponse {
-    let user_id = match session.get::<ObjectId>("user_id") {
-        Ok(Some(id)) => id,
-        _ => {
-            return HttpResponse::Ok().json(json!({ "authenticated": false }));
-        }
-    };
-
     let collection = db.collection::<User>("users");
 
     let _ = collection
         .update_one(
-            doc! { "_id": user_id },
+            doc! { "_id": auth.0 },
             doc! {
                 "$set": { "last_active": BsonDateTime::now() },
                 "$inc": { "total_actions": 1i64 }
@@ -245,7 +245,7 @@ async fn check_auth(
         .await;
 
     let user = collection
-        .find_one(doc! { "_id": user_id })
+        .find_one(doc! { "_id": auth.0 })
         .await
         .unwrap();
 
@@ -260,7 +260,7 @@ async fn check_auth(
         }));
     }
 
-    HttpResponse::Ok().json(json!({ "authenticated": false }))
+    HttpResponse::Unauthorized().json(json!({ "authenticated": false }))
 }
 
 async fn google_login() -> HttpResponse {
@@ -281,7 +281,6 @@ async fn google_login() -> HttpResponse {
 
 async fn google_callback(
     db: web::Data<Database>,
-    session: actix_session::Session,
     query: web::Query<std::collections::HashMap<String, String>>,
 ) -> HttpResponse {
     if let Some(error) = query.get("error") {
@@ -496,19 +495,29 @@ async fn google_callback(
         )
         .await;
 
-    if let Err(e) = session.insert("user_id", user_id) {
-        log::error!("❌ Failed to insert session: {}", e);
-        return HttpResponse::Found()
-            .append_header((
-                "Location",
-                "https://finwise-ai-advisor.vercel.app/login?error=session_failed",
-            ))
-            .finish();
-    }
+    // Create JWT and pass it in the redirect URL instead of a cookie
+    let token = match create_jwt(&user_id) {
+        Ok(t) => t,
+        Err(e) => {
+            log::error!("❌ Failed to create JWT: {}", e);
+            return HttpResponse::Found()
+                .append_header((
+                    "Location",
+                    "https://finwise-ai-advisor.vercel.app/login?error=jwt_failed",
+                ))
+                .finish();
+        }
+    };
 
     log::info!("✅ Google OAuth success for {}", email);
 
     HttpResponse::Found()
-        .append_header(("Location", "https://finwise-ai-advisor.vercel.app/dashboard"))
+        .append_header((
+            "Location",
+            format!(
+                "https://finwise-ai-advisor.vercel.app/dashboard?token={}",
+                token
+            ),
+        ))
         .finish()
 }

@@ -1,28 +1,23 @@
 // src/routes/profile.rs    
 use actix_web::{web, HttpResponse};
-use actix_session::Session;
-use mongodb::bson::{doc, oid::ObjectId}; 
-use chrono::Utc;                           
+use mongodb::bson::doc;
+use chrono::Utc;
 
 use crate::db::Database;
 use crate::models::profile::{ProfileDocument, ProfileResponse};
-use crate::models::user::User;             
+use crate::models::user::User;
 use crate::utils::{AppError, AppResult};
+use crate::utils::auth_extractor::AuthUser;
 
 pub async fn get_profile(
     db: web::Data<Database>,
-    session: Session,
+    auth: AuthUser,
 ) -> AppResult<HttpResponse> {
 
-    let user_id = session
-        .get::<ObjectId>("user_id")
-        .map_err(|_| AppError::NotFound("Session error".into()))? // ? won't work directly
-        .ok_or_else(|| AppError::NotFound("Not logged in".into()))?;
-
+    // Look up user by the ObjectId from JWT
     let users = db.collection::<User>("users");
-
     let user = users
-        .find_one(doc! { "_id": user_id })
+        .find_one(doc! { "_id": auth.0 })
         .await?
         .ok_or_else(|| AppError::NotFound("User not found".into()))?;
 
@@ -44,16 +39,17 @@ pub async fn get_profile(
         }));
     }
 
+    // No profile yet — create a blank one
     let new_profile = ProfileDocument {
         id: None,
         user_id: user.email.clone(),
         latest_advice: None,
         total_analyses: 0,
         updated_at: Utc::now(),
-        total_saved: 0.0,       
-        current_streak: 0,      
-        longest_streak: 0,      
-        reward_points: 0,         
+        total_saved: 0.0,
+        current_streak: 0,
+        longest_streak: 0,
+        reward_points: 0,
     };
 
     profiles.insert_one(&new_profile).await?;

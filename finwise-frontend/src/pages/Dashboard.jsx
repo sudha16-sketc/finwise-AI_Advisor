@@ -8,6 +8,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { finwiseApi } from "../services/api";
+import { authStorage } from "../services/auth";
 import RiskBadge from "../components/RiskBadge";
 import BudgetChart from "../components/BudgetChart";
 import SavingsChart from "../components/SavingsChart";
@@ -40,8 +41,25 @@ export default function Dashboard({ publicKey }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // ── Capture JWT from Google OAuth redirect ──────────────────────────────
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      authStorage.setToken(token);
+      // Remove token from URL so it doesn't sit in browser history
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
   const fetchProfile = useCallback(async () => {
     if (!publicKey) return;
+
+    // Don't fetch if we have no token at all
+    if (!authStorage.isLoggedIn()) {
+      setError("Not logged in");
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -50,20 +68,20 @@ export default function Dashboard({ publicKey }) {
       const apiData = await finwiseApi.getProfile();
 
       let chainData = {
-        total_saved:    0,
+        total_saved: 0,
         current_streak: 0,
         longest_streak: 0,
-        reward_points:  0,
+        reward_points: 0,
       };
 
       chainData = (await getStats()) ?? chainData;
 
       setProfile({
         ...apiData,
-        total_saved:    chainData.total_saved,
+        total_saved: chainData.total_saved,
         current_streak: chainData.current_streak,
         longest_streak: chainData.longest_streak,
-        reward_points:  chainData.reward_points,
+        reward_points: chainData.reward_points,
       });
     } catch (err) {
       setError(err.message || "Failed to load dashboard");
@@ -72,6 +90,7 @@ export default function Dashboard({ publicKey }) {
     }
   }, [publicKey]);
 
+  // Run fetchProfile AFTER the token capture effect has had a chance to run
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
@@ -212,3 +231,4 @@ export default function Dashboard({ publicKey }) {
     </div>
   );
 }
+
