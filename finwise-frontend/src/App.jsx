@@ -9,7 +9,9 @@ import Signin from "./pages/Signin";
 import About from "./pages/About";
 import SendTransaction from "./components/SendTransaction";
 import TxHistory from "./components/TxHistory";
+import AuthCallback from "./pages/AuthCallback";
 import { getConnectedAddress, onKitEvent, KitEventType } from "./services/walletManager";
+import { API_BASE } from "./services/api";
 
 export default function App() {
   const [publicKey, setPublicKey] = useState(
@@ -18,12 +20,29 @@ export default function App() {
   const [isConnected, setIsConnected] = useState(
     () => !!localStorage.getItem("publicKey"),
   );
-  const [walletLoading, setWalletLoading] = useState(true); // NEW
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // ← ADD THIS
+  const [walletLoading, setWalletLoading] = useState(true);
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
   const [transactionStatus, setTransactionStatus] = useState(null);
   const [transactionData, setTransactionData] = useState(null);
   const [balanceRefreshTrigger, setBalanceRefreshTrigger] = useState(0);
 
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/check-auth`, { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+          if (data.user?.wallet_address) {
+            syncWalletState(data.user.wallet_address);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // ── Restore wallet session from kit ─────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
 
@@ -33,9 +52,6 @@ export default function App() {
         if (address) {
           syncWalletState(address);
         } else {
-          // Only clear if localStorage also has nothing —
-          // don't wipe a valid localStorage session just because
-          // the kit hasn't restored yet
           const stored = localStorage.getItem("publicKey");
           if (!stored) {
             clearWalletState();
@@ -44,13 +60,12 @@ export default function App() {
       })
       .catch(() => {
         if (!cancelled) {
-          // On error, trust whatever is in localStorage
           const stored = localStorage.getItem("publicKey");
           if (!stored) clearWalletState();
         }
       })
       .finally(() => {
-        if (!cancelled) setWalletLoading(false); // NEW — done resolving
+        if (!cancelled) setWalletLoading(false);
       });
 
     const unsub = onKitEvent((event) => {
@@ -137,7 +152,7 @@ export default function App() {
                 <Dashboard
                   publicKey={publicKey}
                   isConnected={isConnected}
-                  walletLoading={walletLoading} // NEW
+                  walletLoading={walletLoading}
                 />
               }
             />
@@ -178,7 +193,15 @@ export default function App() {
                   setPublicKey={handleSetPublicKey}
                   isConnected={isConnected}
                   setIsConnected={handleSetIsConnected}
+                  isAuthenticated={isAuthenticated}        
+                  setIsAuthenticated={setIsAuthenticated}  
                 />
+              }
+            />
+            <Route
+              path="/auth/callback"
+              element={
+                <AuthCallback setIsAuthenticated={setIsAuthenticated} />  
               }
             />
           </Routes>

@@ -1,5 +1,4 @@
 import React from "react";
-import { useState } from "react";
 import "./Signin.css";
 import WalletConnect from "../components/WalletConnect";
 
@@ -8,6 +7,8 @@ function Signin({
   setPublicKey,
   isConnected,
   setIsConnected,
+  isAuthenticated,        // ← receive from parent
+  setIsAuthenticated,     // ← receive from parent
 }) {
   return (
     <div className="signin-main">
@@ -16,10 +17,11 @@ function Signin({
         setPublicKey={setPublicKey}
         isConnected={isConnected}
         setIsConnected={setIsConnected}
+        isAuthenticated={isAuthenticated}
+        setIsAuthenticated={setIsAuthenticated}
       />
     </div>
   );
 }
-
 
 export default Signin;
