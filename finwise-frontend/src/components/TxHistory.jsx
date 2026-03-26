@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { fetchTransactions, fetchTransactionsDirect } from '../pages/stellarService';
-import "../App.css";  
+import React, { useState, useEffect } from "react";
+import {
+  fetchTransactions,
+  fetchTransactionsDirect,
+} from "../pages/stellarService";
+import "../App.css";
 function TxHistory({ publicKey, refreshTrigger }) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -13,21 +16,18 @@ function TxHistory({ publicKey, refreshTrigger }) {
     setError(null);
 
     try {
-
-const txData = await fetchTransactions(publicKey);
-setTransactions(Array.isArray(txData) ? txData : []);
-
+      const txData = await fetchTransactions(publicKey);
+      setTransactions(Array.isArray(txData) ? txData : []);
     } catch (apiError) {
-      console.warn('Backend API failed, trying direct Stellar call:', apiError);
+      console.warn("Backend API failed, trying direct Stellar call:", apiError);
 
       try {
         const directTx = await fetchTransactionsDirect(publicKey, 10);
         setTransactions(Array.isArray(directTx) ? directTx : []);
-
       } catch (directError) {
         setTransactions([]);
         setError("Failed to load transactions");
-        console.error('Transaction history error:', directError);
+        console.error("Transaction history error:", directError);
       }
     } finally {
       setLoading(false);
@@ -37,7 +37,6 @@ setTransactions(Array.isArray(txData) ? txData : []);
   useEffect(() => {
     loadTransactions();
   }, [publicKey, refreshTrigger]);
-
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -58,65 +57,60 @@ setTransactions(Array.isArray(txData) ? txData : []);
 
   return (
     <div className="transaction-history-container">
-      <div className="history-header">
-        <h2>Transaction History</h2>
-        <button 
-          onClick={loadTransactions} 
-          disabled={loading}
-          className="refresh-button-small"
-        >
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </button>
-      </div>
 
       {loading ? (
         <div className="loading-spinner">Loading transactions...</div>
       ) : error ? (
         <div className="error-message"> {error}</div>
-      ) : !transactions || transactions.length === 0? (
+      ) : !transactions || transactions.length === 0 ? (
         <div className="no-transactions">
           No transactions found for this account
         </div>
       ) : (
-        <div className="transactions-list">
-          {transactions.map((tx, index) => (
-            <div key={tx.id || index} className="transaction-item">
-              <div className="tx-header">
-                <span className="tx-status">
-                  {tx.successful ? 'Sucess' : 'Failed'}
-                </span>
-                <span className="tx-hash" title={tx.hash}>
-                  {formatHash(tx.hash)}
-                </span>
-              </div>
-              
-              <div className="tx-details">
-                <div className="tx-detail">
-                  <span className="label">Date:</span>
-                  <span className="value">{formatDate(tx.created_at)}</span>
-                </div>
-                
-                <div className="tx-detail">
-                  <span className="label">Operations:</span>
-                  <span className="value">{tx.operation_count}</span>
-                </div>
-                
-                <div className="tx-detail">
-                  <span className="label">Fee:</span>
-                  <span className="value">{tx.fee_charged} stroops</span>
-                </div>
-              </div>
+        <div className="tx-table-wrapper">
+          <table className="tx-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>INVOICE ID</th>
+                <th>HASH</th>
+                <th>DATE</th>
+                <th>FEE</th>
+                <th>STATUS</th>
+                <th></th>
+              </tr>
+            </thead>
 
-              <a 
-                href={getExplorerUrl(tx.hash)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="explorer-link-small"
-              >
-                View Details →
-              </a>
-            </div>
-          ))}
+            <tbody>
+              {transactions.map((tx, index) => (
+                <tr key={tx.id || index}>
+                  <td>
+                    <input type="checkbox" />
+                  </td>
+
+                  <td className="id-cell">ID: {index + 10000}</td>
+
+                  <td className="hash-cell" title={tx.hash}>
+                    {formatHash(tx.hash)}
+                  </td>
+
+                  <td>{formatDate(tx.created_at)}</td>
+
+                  <td>${(tx.fee_charged / 10000000).toFixed(5)}</td>
+
+                  <td>
+                    <span
+                      className={`status-pill ${tx.successful ? "success" : "failed"}`}
+                    >
+                      {tx.successful ? "Completed" : "Failed"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          
         </div>
       )}
     </div>

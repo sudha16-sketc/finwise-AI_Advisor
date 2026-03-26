@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   sendTransaction,
   isValidAddress,
@@ -6,12 +6,14 @@ import {
   fetchBalanceDirect,
 } from "../pages/stellarService";
 import "../App.css";
+import TxHistory from "./TxHistory";
 
 function SendTransaction({
   publicKey,
   onTransactionComplete,
   isConnected,
   refreshTrigger,
+  historyRefreshTrigger,
   lastTx,
   fee,
   network,
@@ -25,7 +27,7 @@ function SendTransaction({
   const [balance, setBalance] = useState(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [balanceError, setBalanceError] = useState(null);
-
+  const videoRef = useRef(null);
   const validateDestination = (address) => {
     if (!address) {
       setValidationError("");
@@ -111,6 +113,18 @@ function SendTransaction({
       setBalanceLoading(false);
     }
   };
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (sending) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }, [sending]);
 
   useEffect(() => {
     loadBalance();
@@ -227,6 +241,24 @@ function SendTransaction({
             <div className={`status ${status.type}`}>{status.message}</div>
           )}
         </div>
+      </div>
+      <div className="div3">
+        <video
+          ref={videoRef}
+          src="/videos/sendtx.mp4" 
+          muted
+          loop
+          playsInline
+          className="tx-video"
+        />
+
+        {!sending && <div className="video-overlay">Ready to Send</div>}
+      </div>
+      <div className="div4">
+        <TxHistory
+          publicKey={publicKey}
+          refreshTrigger={historyRefreshTrigger}
+        />
       </div>
     </div>
   );

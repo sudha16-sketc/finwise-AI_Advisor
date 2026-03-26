@@ -42,7 +42,7 @@ ref.current.rotation.x = progress * 0.08;
     <primitive
       ref={ref}
       object={scene}
-      position={[-0.3, -0.6, 0]}
+      position={[0, -0.7, 0]}
       rotation={[0, 0, 0]}
     />
   );

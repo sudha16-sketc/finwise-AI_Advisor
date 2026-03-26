@@ -16,20 +16,10 @@
   font-weight: 800;
   line-height: 1;
   margin: 0;
+  color:rgba(0, 0, 0, 0.715);
 }
 
-/* Gradient text */
-.hero-text h1:first-child {
-  background: linear-gradient(90deg, #000, transparent);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
 
-.hero-text h1:last-child {
-  background: linear-gradient(90deg, transparent, #000);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
 
 /* Buttons container */
 .hero-buttons {

@@ -9,7 +9,11 @@ import Signin from "./pages/Signin";
 import About from "./pages/About";
 import SendTransaction from "./components/SendTransaction";
 import TxHistory from "./components/TxHistory";
-import { getConnectedAddress, onKitEvent, KitEventType } from "./services/walletManager";
+import {
+  getConnectedAddress,
+  onKitEvent,
+  KitEventType,
+} from "./services/walletManager";
 import { API_BASE } from "./services/api";
 
 export default function App() {
@@ -25,7 +29,6 @@ export default function App() {
   const [transactionStatus, setTransactionStatus] = useState(null);
   const [transactionData, setTransactionData] = useState(null);
   const [balanceRefreshTrigger, setBalanceRefreshTrigger] = useState(0);
-
 
   useEffect(() => {
     fetch(`${API_BASE}/api/check-auth`, { credentials: "include" })
@@ -164,12 +167,16 @@ export default function App() {
                   isConnected={isConnected}
                   onTransactionComplete={handleTransactionComplete}
                   refreshTrigger={balanceRefreshTrigger}
+                  historyRefreshTrigger={historyRefreshTrigger} 
                   lastTx={transactionData?.hash}
                   fee="0.00001 XLM"
                   network="online"
                   status={
                     transactionStatus
-                      ? { type: transactionStatus, message: "Transaction successful" }
+                      ? {
+                          type: transactionStatus,
+                          message: "Transaction successful",
+                        }
                       : null
                   }
                 />
@@ -192,8 +199,8 @@ export default function App() {
                   setPublicKey={handleSetPublicKey}
                   isConnected={isConnected}
                   setIsConnected={handleSetIsConnected}
-                  isAuthenticated={isAuthenticated}        
-                  setIsAuthenticated={setIsAuthenticated}  
+                  isAuthenticated={isAuthenticated}
+                  setIsAuthenticated={setIsAuthenticated}
                 />
               }
             />
