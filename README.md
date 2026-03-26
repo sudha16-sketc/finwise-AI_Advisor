@@ -152,11 +152,13 @@ The following wallet addresses have interacted with the FinWise platform and are
 
 | # | Wallet Address | Explorer Link | Role |
 |---|---|---|---|
-| 1 | `GA3WKZPAEMGMMMB5PJKWPITIFD54SECIID3V4QKNB3ARROYQNCKHBPI2` | [View](https://stellar.expert/explorer/testnet/account/GA3WKZPAEMGMMMB5PJKWPITIFD54SECIID3V4QKNB3ARROYQNCKHBPI2) | sudhakarsutar101@gmail.com |
-| 2 | `GBBCIA2SJ4ZCNWPB5O447KCNO4NIHMLF3XMVK3DZOMQD4RIJ3HCDMXE5` | [View](https://stellar.expert/explorer/testnet/account/GBBCIA2SJ4ZCNWPB5O447KCNO4NIHMLF3XMVK3DZOMQD4RIJ3HCDMXE5) | mrameen330@gmail.com |
-| 3 | `GBROW5BI5VDRZ4ZKO432LAPTTDODYQCJQXTCUXAEBWGTPG7JIGLVB5M3` | [View](https://stellar.expert/explorer/testnet/account/GBROW5BI5VDRZ4ZKO432LAPTTDODYQCJQXTCUXAEBWGTPG7JIGLVB5M3) | blockchainerjainparam@gmail.com |
-| 4 | `GCPB676PALIONHBTQUEQ3FOAXYAAQ4ADMBMDLGVUGZNWXPYZROOX4TP4` | [View](https://stellar.expert/explorer/testnet/account/GCPB676PALIONHBTQUEQ3FOAXYAAQ4ADMBMDLGVUGZNWXPYZROOX4TP4) | deepakgupta4142434445464748@gmail.com |
-| 5 | `GCXF754WQZ5ELFJMQTWJDOTUR6MQQXHDVEFEYDQBIQICQ6H7XLRM4VRZ` | [View](https://stellar.expert/explorer/testnet/account/GCXF754WQZ5ELFJMQTWJDOTUR6MQQXHDVEFEYDQBIQICQ6H7XLRM4VRZ) | kalbhorsppu12@gmail.com |
+| 1 | `GCDCQIYZ7N5M4ND625BK7FGGGANTJJDW5KFFUMIWEOOYCIR27WA7ZT6M` | [View](https://stellar.expert/explorer/testnet/account/GCDCQIYZ7N5M4ND625BK7FGGGANTJJDW5KFFUMIWEOOYCIR27WA7ZT6M) | deepakgupta4142434445464748@gmail.com |
+| 2 | `GDD5YF3VBRFACXBEOL572U4BOHUK2XAYVQ33H56SBMDSJSQX4ICAUKLO` | [View](https://stellar.expert/explorer/testnet/account/GDD5YF3VBRFACXBEOL572U4BOHUK2XAYVQ33H56SBMDSJSQX4ICAUKLO) | sutarsudarshan621@gmail.com |
+| 3 | `GC3U52PVKJ33U424KGFKGCDPVBJGFDOANKAOEFBPT5BUDSMVJXVMXZWG` | [View](https://stellar.expert/explorer/testnet/account/GC3U52PVKJ33U424KGFKGCDPVBJGFDOANKAOEFBPT5BUDSMVJXVMXZWG) | trupti.khandbhor22@gmail.com |
+| 4 | `GC6U7V64P7KTUSPFXO3WWU6V7AYBRLRJW6PPRVQAL5YXHZM3HHTX2EP3` | [View](https://stellar.expert/explorer/testnet/account/GC6U7V64P7KTUSPFXO3WWU6V7AYBRLRJW6PPRVQAL5YXHZM3HHTX2EP3) | vg6494391@gmail.com |
+| 5 | `GDFNCO4KZN7VZJTCYWPJYQN2WJGKJY46PN2AR6FA2WB35YMU3Q2U6JQE` | [View](https://stellar.expert/explorer/testnet/account/GDFNCO4KZN7VZJTCYWPJYQN2WJGKJY46PN2AR6FA2WB35YMU3Q2U6JQE) | pratikshaspark12@gmail.com |
+| 6 | `GACUAJJ5XYAOHFRNASQU472IEZHMU5G37CLNPGKA7HK55MEFZV6ZJQ45` | [View](https://stellar.expert/explorer/testnet/account/GACUAJJ5XYAOHFRNASQU472IEZHMU5G37CLNPGKA7HK55MEFZV6ZJQ45) | vedmalkunaik@gmail.com |
+| 5 | `GBFP6DQ6V2TODBDCEFHO6R5NAX3FDPNSREKQBFQUZSY5FWJR3HXVQO6Q` | [View](https://stellar.expert/explorer/testnet/account/GBFP6DQ6V2TODBDCEFHO6R5NAX3FDPNSREKQBFQUZSY5FWJR3HXVQO6Q) | shrirammasalge8@gmail.com |
 
 > All addresses are on **Stellar Testnet**. You can verify transactions at [stellar.expert/explorer/testnet](https://stellar.expert/explorer/testnet).
 
@@ -170,13 +172,7 @@ The following feedback was collected from real users who tested the FinWise AI p
 
 ### Feedback Summary
 
-| User Email | Key Feedback |
-|------------|--------------|
-| kalbhorsppu12@gmail.com | Sign-in works on desktop browsers but fails on mobile browsers. |
-| deepakgupta4142434445464748@gmail.com | UI is clean, but wallet connection could be faster. |
-| blockchainerjainparam@gmail.com | Transaction history feature is very useful. |
-| mrameen330@gmail.com | AI financial analysis feature is interesting and helpful. |
-| sudhakarsutar101@gmail.com | There is an issue with wallet connection inside the dashboard. |
+https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZwDws89-sNGKGNdCNaYpNcOtZtE6CvGjqAAOEAOA5Hvdo2ShF4S3veYncBapYMoq_bMTycM9HAwa/pub?output=xlsx
 
 ---
 
