@@ -172,7 +172,7 @@ The following feedback was collected from real users who tested the FinWise AI p
 
 ### Feedback Summary
 
-https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZwDws89-sNGKGNdCNaYpNcOtZtE6CvGjqAAOEAOA5Hvdo2ShF4S3veYncBapYMoq_bMTycM9HAwa/pub?output=xlsx
+https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZwDws89-sNGKGNdCNaYpNcOtZtE6CvGjqAAOEAOA5Hvdo2ShF4S3veYncBapYMoq_bMTycM9HAwa/pubhtml
 
 ---
 
