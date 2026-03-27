@@ -13,6 +13,7 @@
 ## Demo Video
 
 **Full MVP walkthrough — wallet connect, AI analysis, XLM send, piggy bank streak:**
+
 https://github.com/user-attachments/assets/e0b15652-6c5d-4847-a7f5-971fb8a2b5cf
 
 https://github.com/user-attachments/assets/5c90d0f8-df5a-4c60-a239-2282336029b6
