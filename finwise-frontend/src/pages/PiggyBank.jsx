@@ -9,6 +9,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { deposit, getStats } from "../services/stellarPiggy";
+import "./PiggyBank.css";
 
 const USER_ID = "user_demo_001";
 
@@ -36,7 +37,6 @@ export default function PiggyBankPage() {
     setFetchLoading(true);
     try {
       const data = await getStats();
-
       setStats({
         total_saved: Number(data?.total_saved ?? 0),
         current_streak: Number(data?.current_streak ?? 0),
@@ -73,10 +73,8 @@ export default function PiggyBankPage() {
       setAlreadyDeposited(true);
     } catch (err) {
       console.error("Deposit error:", err);
-
       const raw = err?.toString() || "";
 
-      // 🔥 Contract error #1 = AlreadyDepositedToday
       if (raw.includes("Error(Contract, #1)")) {
         setAlreadyDeposited(true);
         setError(
@@ -97,78 +95,20 @@ export default function PiggyBankPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-pink-50 to-violet-50 py-10 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-10 animate-fade-in">
-          <div className="text-6xl mb-4">🐷</div>
-          <h1 className="text-4xl font-extrabold text-slate-800 mb-2">
-            Piggy Bank
-          </h1>
-          <p className="text-slate-500">
+    <div className="piggy-page">
+      <div className="piggy-container">
+        <div className="piggy-header">
+          <h1 className="piggy-header-title">Piggy Bank</h1>
+          <p className="piggy-header-subtitle">
             Deposit daily, build your streak, earn reward points!
           </p>
         </div>
 
-        {/* Stats */}
-        {fetchLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
-          </div>
-        ) : stats ? (
-          <div className="grid grid-cols-2 gap-4 mb-8 animate-slide-up">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 text-center">
-              <PiggyBank className="w-6 h-6 text-pink-500 mx-auto mb-1" />
-              <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-                Total Saved
-              </p>
-              <p className="text-2xl font-extrabold text-slate-800">
-                ₹{((stats?.total_saved ?? 0) / 10 ** 7).toLocaleString()}
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 text-center">
-              <Flame className="w-6 h-6 text-amber-500 mx-auto mb-1" />
-              <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-                Current Streak
-              </p>
-              <p className="text-2xl font-extrabold text-slate-800">
-                {streakEmoji(stats.current_streak)} {stats.current_streak} days
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 text-center">
-              <Trophy className="w-6 h-6 text-violet-500 mx-auto mb-1" />
-              <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-                Longest Streak
-              </p>
-              <p className="text-2xl font-extrabold text-slate-800">
-                {stats.longest_streak} days
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 text-center">
-              <Star className="w-6 h-6 text-emerald-500 mx-auto mb-1" />
-              <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">
-                Reward Points
-              </p>
-              <p className="text-2xl font-extrabold text-slate-800">
-                {stats.reward_points} pts
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-6 text-slate-400 text-sm mb-8">
-            No deposits yet — make your first deposit below!
-          </div>
-        )}
+        <div className="piggy-deposit-card">
+          <h2 className="piggy-deposit-title">Make Today's Deposit</h2>
 
-        {/* Deposit Card */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 animate-slide-up">
-          <h2 className="text-xl font-bold text-slate-800 mb-6">
-            Make Today's Deposit
-          </h2>
-
-          {/* Progress nudge */}
           {stats && (
-            <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-6 text-sm text-amber-700">
+            <div className="piggy-nudge">
               {stats.current_streak < 7
                 ? `🎯 ${7 - stats.current_streak} more days to 7-day streak (+50 bonus points)!`
                 : stats.current_streak < 30
@@ -178,18 +118,16 @@ export default function PiggyBankPage() {
           )}
 
           {alreadyDeposited ? (
-            <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4">
-              <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
-              <p className="text-emerald-700 text-sm font-medium">
+            <div className="piggy-already-deposited">
+              <CheckCircle className="piggy-already-deposited-icon" />
+              <p className="piggy-already-deposited-text">
                 {success || "Deposit already made today! Come back tomorrow."}
               </p>
             </div>
           ) : (
             <>
-              <div className="mb-5">
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Deposit Amount (₹)
-                </label>
+              <div className="piggy-input-wrapper">
+                <label className="piggy-input-label">Deposit Amount (₹)</label>
                 <input
                   type="number"
                   value={amount}
@@ -197,17 +135,16 @@ export default function PiggyBankPage() {
                   onKeyDown={(e) => e.key === "Enter" && handleDeposit()}
                   min="1"
                   placeholder="e.g. 200"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-pink-300"
+                  className="piggy-input"
                 />
               </div>
 
-              {/* Quick amount chips */}
-              <div className="flex gap-2 flex-wrap mb-5">
+              <div className="piggy-chips">
                 {[100, 200, 500, 1000].map((v) => (
                   <button
                     key={v}
                     onClick={() => setAmount(String(v))}
-                    className="px-4 py-1.5 bg-slate-100 hover:bg-pink-100 hover:text-pink-700 text-slate-600 rounded-full text-sm font-medium transition-colors"
+                    className="piggy-chip"
                   >
                     ₹{v}
                   </button>
@@ -215,8 +152,8 @@ export default function PiggyBankPage() {
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 text-rose-600 bg-rose-50 px-4 py-3 rounded-xl text-sm mb-4">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
+                <div className="piggy-error">
+                  <AlertCircle className="piggy-error-icon" />
                   {error}
                 </div>
               )}
@@ -224,15 +161,16 @@ export default function PiggyBankPage() {
               <button
                 onClick={handleDeposit}
                 disabled={loading}
-                className="w-full py-4 bg-gradient-to-r from-pink-500 to-violet-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-pink-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="piggy-deposit-btn"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" /> Saving...
+                    <Loader2 className="piggy-spinner" /> Saving...
                   </>
                 ) : (
                   <>
-                    <PiggyBank className="w-5 h-5" /> Deposit & Feed the Piggy!
+                    <PiggyBank className="piggy-deposit-btn-icon" /> Deposit &
+                    Feed the Piggy!
                   </>
                 )}
               </button>
@@ -240,22 +178,59 @@ export default function PiggyBankPage() {
           )}
         </div>
 
-        {/* Milestones */}
-        <div className="mt-6 bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
-          <h3 className="font-bold text-slate-800 mb-4">Reward Milestones</h3>
-          <div className="space-y-3">
+        {fetchLoading ? (
+          <div className="piggy-stats-loader">
+            <Loader2 className="piggy-stats-loader-icon" />
+          </div>
+        ) : stats ? (
+          <>
+            <div className="piggy-stat-card piggy-stat-card--saved">
+              <PiggyBank className="piggy-stat-icon piggy-stat-icon--pink" />
+              <p className="piggy-stat-label">Total Saved</p>
+              <p className="piggy-stat-value">
+                ₹{((stats?.total_saved ?? 0) / 10 ** 7).toLocaleString()}
+              </p>
+            </div>
+
+            <div className="piggy-stat-card piggy-stat-card--streak">
+              <Flame className="piggy-stat-icon piggy-stat-icon--amber" />
+              <p className="piggy-stat-label">Current Streak</p>
+              <p className="piggy-stat-value">
+                {streakEmoji(stats.current_streak)} {stats.current_streak} days
+              </p>
+            </div>
+
+            <div className="piggy-stat-card piggy-stat-card--longest">
+              <Trophy className="piggy-stat-icon piggy-stat-icon--violet" />
+              <p className="piggy-stat-label">Longest Streak</p>
+              <p className="piggy-stat-value">{stats.longest_streak} days</p>
+            </div>
+
+            <div className="piggy-stat-card piggy-stat-card--points">
+              <Star className="piggy-stat-icon piggy-stat-icon--emerald" />
+              <p className="piggy-stat-label">Reward Points</p>
+              <p className="piggy-stat-value">{stats.reward_points} pts</p>
+            </div>
+          </>
+        ) : (
+          <div className="piggy-stats-empty">
+            No deposits yet — make your first deposit below!
+          </div>
+        )}
+
+        <div className="piggy-milestones-card">
+          <h3 className="piggy-milestones-title">Reward Milestones</h3>
+          <div className="piggy-milestones-list">
             {milestones.map(({ days, label, pts, icon }) => (
-              <div key={days} className="flex items-center gap-4">
-                <span className="text-2xl w-8">{icon}</span>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-700">{label}</p>
-                  <p className="text-xs text-slate-400">Each deposit</p>
+              <div key={days} className="piggy-milestone-row">
+                <span className="piggy-milestone-emoji">{icon}</span>
+                <div className="piggy-milestone-info">
+                  <p className="piggy-milestone-label">{label}</p>
+                  <p className="piggy-milestone-sublabel">Each deposit</p>
                 </div>
-                <span className="text-sm font-semibold text-emerald-600">
-                  {pts}
-                </span>
+                <span className="piggy-milestone-pts">{pts}</span>
                 {stats && stats.current_streak >= days && (
-                  <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  <CheckCircle className="piggy-milestone-check" />
                 )}
               </div>
             ))}

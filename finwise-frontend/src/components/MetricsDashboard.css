@@ -1,0 +1,355 @@
+
+
+/* ---------- Page Wrapper ---------- */
+.metrics-page {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.metrics-dashboard {
+  width: 100%;
+  max-width: 960px;
+  padding: 2rem;
+}
+
+/* ---------- Header ---------- */
+.metrics-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.metrics-header-title {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #f1f5f9;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.metrics-header-sub {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 10px;
+  height: 540px;
+  animation: metrics-fade-in 0.5s ease both;
+}
+
+/* --- Grid placements --- */
+.metrics-div1  { grid-column: span 3 / span 3; grid-row: span 3 / span 3; }
+.metrics-div2  { grid-column-start: 1; grid-row: span 2 / span 2; grid-row-start: 4; }
+.metrics-div3  { grid-column-start: 2; grid-row: span 2 / span 2; grid-row-start: 4; }
+.metrics-div4  { grid-column-start: 3; grid-row: span 2 / span 2; grid-row-start: 4; }
+.metrics-div8  { grid-column-start: 4; grid-row: span 2 / span 2; grid-row-start: 1; }
+.metrics-div9  { grid-column-start: 5; grid-row: span 2 / span 2; grid-row-start: 1; }
+.metrics-div10 { grid-column: span 2 / span 2; grid-column-start: 4; grid-row: span 3 / span 3; grid-row-start: 3; }
+
+/* ---------- Shared Cell ---------- */
+.metrics-cell {
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ---------- Chart Cell (div1) ---------- */
+.metrics-chart-cell {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.25rem 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.metrics-chart-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+
+.metrics-chart-area {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---------- Stat Cards ---------- */
+.metrics-stat-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  position: relative;
+  overflow: hidden;
+}
+
+.metrics-stat-cell--users    { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
+.metrics-stat-cell--24h      { background: linear-gradient(135deg, #10b981, #059669); }
+.metrics-stat-cell--7d       { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.metrics-stat-cell--tx       { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.metrics-stat-cell--analyses { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+
+.metrics-stat-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+}
+
+.metrics-stat-value {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.metrics-stat-icon {
+  font-size: 1.4rem;
+  opacity: 0.35;
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.8rem;
+  line-height: 1;
+}
+
+/* ---------- Top Users Cell (div10) ---------- */
+.metrics-users-cell {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.metrics-users-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.85rem;
+}
+
+.metrics-users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.metrics-user-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.metrics-user-rank {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #475569;
+  width: 1rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.metrics-user-name {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  width: 3.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.metrics-user-bar-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.metrics-user-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metrics-user-actions {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #64748b;
+  width: 1.8rem;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.metrics-user-bar-fill--0 { background: linear-gradient(90deg, #38bdf8, #0ea5e9); }
+.metrics-user-bar-fill--1 { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+.metrics-user-bar-fill--2 { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+.metrics-user-bar-fill--3 { background: linear-gradient(90deg, #34d399, #10b981); }
+.metrics-user-bar-fill--4 { background: linear-gradient(90deg, #fb7185, #f43f5e); }
+
+/* ---------- Footer ---------- */
+.metrics-footer {
+  margin-top: 0.85rem;
+  padding: 0.6rem 1rem;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 10px;
+  font-size: 0.7rem;
+  color: #7dd3fc;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Loading ---------- */
+.metrics-loading {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #64748b;
+  font-size: 0.875rem;
+  animation: metrics-pulse 1.5s ease-in-out infinite;
+}
+
+@media (max-width: 768px) {
+  .metrics-dashboard {
+    padding: 1.25rem 1rem;
+  }
+
+  /* Switch to a 2-column auto-row grid */
+  .metrics-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: none;   /* let rows size to content */
+    grid-auto-rows: auto;
+    height: auto;
+    gap: 10px;
+  }
+
+  /* --- Reset all desktop placements --- */
+  .metrics-div1,
+  .metrics-div2,
+  .metrics-div3,
+  .metrics-div4,
+  .metrics-div8,
+  .metrics-div9,
+  .metrics-div10 {
+    grid-column: unset;
+    grid-row: unset;
+    grid-column-start: unset;
+    grid-row-start: unset;
+  }
+
+  /* Row 1 — Chart: full width */
+  .metrics-div1 {
+    grid-column: 1 / span 2;
+    grid-row: 1;
+    min-height: 220px;
+  }
+
+  /* Row 2 — Active 24h | Active 7d */
+  .metrics-div3 { grid-column: 1; grid-row: 2; }
+  .metrics-div4 { grid-column: 2; grid-row: 2; }
+
+  /* Row 3 — Total Tx | Analyses */
+  .metrics-div8 { grid-column: 1; grid-row: 3; }
+  .metrics-div9 { grid-column: 2; grid-row: 3; }
+
+  /* Row 4 — Total Users (left) | Most Active Users (right) */
+  .metrics-div2  { grid-column: 1; grid-row: 4; min-height: 160px; }
+  .metrics-div10 { grid-column: 2; grid-row: 4; min-height: 160px; }
+
+  /* Tighten stat card padding on small screens */
+  .metrics-stat-cell {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .metrics-stat-value {
+    font-size: 1.35rem;
+  }
+
+  .metrics-stat-label {
+    font-size: 0.58rem;
+  }
+
+  .metrics-stat-icon {
+    font-size: 1.1rem;
+    bottom: 0.5rem;
+    right: 0.6rem;
+  }
+
+  /* Shrink user list text slightly */
+  .metrics-user-name { width: 2.8rem; }
+  .metrics-users-cell { padding: 0.85rem 0.9rem; }
+  .metrics-users-title { font-size: 0.62rem; margin-bottom: 0.6rem; }
+  .metrics-user-rank { font-size: 0.55rem; }
+  .metrics-user-actions { font-size: 0.6rem; }
+}
+
+/* ============================================================
+   TABLET  (769px – 1024px)
+   ============================================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    height: auto;
+    gap: 10px;
+  }
+
+  .metrics-div1,
+  .metrics-div2,
+  .metrics-div3,
+  .metrics-div4,
+  .metrics-div8,
+  .metrics-div9,
+  .metrics-div10 {
+    grid-column: unset;
+    grid-row: unset;
+    grid-column-start: unset;
+    grid-row-start: unset;
+  }
+
+  /* Chart: full width */
+  .metrics-div1 { grid-column: 1 / span 4; min-height: 260px; }
+
+  /* Four stat cards in a row */
+  .metrics-div2  { grid-column: 1; }
+  .metrics-div3  { grid-column: 2; }
+  .metrics-div4  { grid-column: 3; }
+  .metrics-div8  { grid-column: 4; }
+  .metrics-div9  { grid-column: 1; }
+
+  /* Top users spans remaining 3 cols */
+  .metrics-div10 { grid-column: 2 / span 3; }
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes metrics-fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes metrics-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}

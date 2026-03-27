@@ -1,15 +1,20 @@
 // src/components/MetricsDashboard.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer,
-} from 'recharts';
-import { finwiseApi } from '../services/api.js';
-
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import "./MetricsDashboard.css";
+import { finwiseApi } from "../services/api.js";
 const MetricsDashboard = () => {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -18,136 +23,167 @@ const MetricsDashboard = () => {
         setMetrics(data);
         setError(null);
       } catch (err) {
-        setError(err.message || 'Failed to fetch metrics');
+        setError(err.message || "Failed to fetch metrics");
       } finally {
         setLoading(false);
       }
     };
-
     fetchMetrics();
     const interval = setInterval(fetchMetrics, 30000);
     return () => clearInterval(interval);
   }, []);
-
   if (loading) {
     return (
       <div className="text-center py-8 text-slate-500 text-sm animate-pulse">
-        Loading metrics…
+        {" "}
+        Loading metrics…{" "}
       </div>
     );
-  }
-
-  // Fail silently — metrics are supplementary
+  } 
   if (error || !metrics) return null;
-
-  const totalUsers        = metrics.total_users          ?? 0;
-  const activeUsers24h    = metrics.active_users_24h     ?? 0;
-  const activeUsers7d     = metrics.active_users_7d      ?? 0;
-  const totalTransactions = metrics.total_transactions   ?? 0;
-  const totalAnalyses     = metrics.total_analyses       ?? 0;
-  const totalConnects     = metrics.total_connects       ?? 0;
-  const avgActions        = metrics.avg_actions_per_user ?? 0;
-
-  // ✅ Removed Deposits/Withdrawals — replaced with Analyses and Connects
+  const totalUsers = metrics.total_users ?? 0;
+  const activeUsers24h = metrics.active_users_24h ?? 0;
+  const activeUsers7d = metrics.active_users_7d ?? 0;
+  const totalTransactions = metrics.total_transactions ?? 0;
+  const totalAnalyses = metrics.total_analyses ?? 0;
+  const totalConnects = metrics.total_connects ?? 0;
+  const avgActions = metrics.avg_actions_per_user ?? 0; 
   const chartData = [
-    { name: 'Analyses',     value: totalAnalyses },
-    { name: 'Connects',     value: totalConnects },
-    { name: 'Transactions', value: totalTransactions },
+    { name: "Analyses", value: totalAnalyses },
+    { name: "Connects", value: totalConnects },
+    { name: "Transactions", value: totalTransactions },
   ];
-
+  const maxActions = Math.max(
+  ...(metrics.top_users?.map((u) => u.total_actions ?? u.actions ?? 0) || [0])
+);
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-sm border border-slate-100 max-w-4xl mx-auto mt-6">
-      <h2 className="text-2xl font-extrabold text-slate-800 mb-8 text-center">
-        📊 Platform Metrics
-      </h2>
+    <div className="metrics-page">
+      <div className="metrics-dashboard">
+        <div className="metrics-grid">
+          {/* ── div1: Bar Chart (col 1–3, row 1–3) ── */}
+          <div className="metrics-cell metrics-chart-cell metrics-div1">
+            <p className="metrics-chart-title">📈 Activity Breakdown</p>
+            <div className="metrics-chart-area">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 4, right: 8, left: -16, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    strokeOpacity={0.12}
+                    stroke="#94a3b8"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "10px",
+                      border: "none",
+                      background: "#1e293b",
+                      color: "#f1f5f9",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+                      fontSize: "12px",
+                    }}
+                    cursor={{ fill: "rgba(255,255,255,0.04)" }}
+                  />
+                  <Bar
+                    dataKey="value"
+                    name="Count"
+                    fill="#38bdf8"
+                    radius={[6, 6, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-      {/* Row 1 — 4 cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <div className="bg-gradient-to-br from-sky-400 to-cyan-500 text-white p-5 rounded-2xl">
-          <h3 className="text-xs font-semibold opacity-80 uppercase tracking-widest">Total Users</h3>
-          <div className="text-3xl font-black mt-2">{totalUsers.toLocaleString()}</div>
-        </div>
-        <div className="bg-gradient-to-br from-emerald-400 to-teal-500 text-white p-5 rounded-2xl">
-          <h3 className="text-xs font-semibold opacity-80 uppercase tracking-widest">Active 24h</h3>
-          <div className="text-3xl font-black mt-2">{activeUsers24h.toLocaleString()}</div>
-        </div>
-        <div className="bg-gradient-to-br from-amber-400 to-orange-500 text-white p-5 rounded-2xl">
-          <h3 className="text-xs font-semibold opacity-80 uppercase tracking-widest">Active 7d</h3>
-          <div className="text-3xl font-black mt-2">{activeUsers7d.toLocaleString()}</div>
-        </div>
-        <div className="bg-gradient-to-br from-violet-400 to-purple-500 text-white p-5 rounded-2xl">
-          <h3 className="text-xs font-semibold opacity-80 uppercase tracking-widest">Total Tx</h3>
-          <div className="text-3xl font-black mt-2">{totalTransactions.toLocaleString()}</div>
-        </div>
-      </div>
+          {/* ── div2: Total Users (col 1, rows 4–5) ── */}
+          <div className="metrics-cell metrics-stat-cell metrics-stat-cell--users metrics-div2">
+            <p className="metrics-stat-label">Total Users</p>
+            <p className="metrics-stat-value">{totalUsers.toLocaleString()}</p>
+            <span className="metrics-stat-icon">👥</span>
+          </div>
 
-      {/* Row 2 — 2 cards */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-gradient-to-br from-rose-400 to-pink-500 text-white p-5 rounded-2xl">
-          <h3 className="text-xs font-semibold opacity-80 uppercase tracking-widest">Analyses Run</h3>
-          <div className="text-3xl font-black mt-2">{totalAnalyses.toLocaleString()}</div>
-        </div>
-        <div className="bg-gradient-to-br from-indigo-400 to-blue-500 text-white p-5 rounded-2xl">
-          <h3 className="text-xs font-semibold opacity-80 uppercase tracking-widest">Avg Actions / User</h3>
-          <div className="text-3xl font-black mt-2">
-            {typeof avgActions === 'number' ? avgActions.toFixed(1) : avgActions}
+          {/* ── div3: Active 24h (col 2, rows 4–5) ── */}
+          <div className="metrics-cell metrics-stat-cell metrics-stat-cell--24h metrics-div3">
+            <p className="metrics-stat-label">Active 24h</p>
+            <p className="metrics-stat-value">
+              {activeUsers24h.toLocaleString()}
+            </p>
+            <span className="metrics-stat-icon">⚡</span>
+          </div>
+
+          {/* ── div4: Active 7d (col 3, rows 4–5) ── */}
+          <div className="metrics-cell metrics-stat-cell metrics-stat-cell--7d metrics-div4">
+            <p className="metrics-stat-label">Active 7d</p>
+            <p className="metrics-stat-value">
+              {activeUsers7d.toLocaleString()}
+            </p>
+            <span className="metrics-stat-icon">📅</span>
+          </div>
+
+          {/* ── div8: Total Transactions (col 4, rows 1–2) ── */}
+          <div className="metrics-cell metrics-stat-cell metrics-stat-cell--tx metrics-div8">
+            <p className="metrics-stat-label">Total Tx</p>
+            <p className="metrics-stat-value">
+              {totalTransactions.toLocaleString()}
+            </p>
+            <span className="metrics-stat-icon">💳</span>
+          </div>
+
+          {/* ── div9: Analyses Run (col 5, rows 1–2) ── */}
+          <div className="metrics-cell metrics-stat-cell metrics-stat-cell--analyses metrics-div9">
+            <p className="metrics-stat-label">Analyses</p>
+            <p className="metrics-stat-value">
+              {totalAnalyses.toLocaleString()}
+            </p>
+            <span className="metrics-stat-icon">🔬</span>
+          </div>
+
+          {/* ── div10: Top Users list (col 4–5, rows 3–5) ── */}
+          <div className="metrics-cell metrics-users-cell metrics-div10">
+            <p className="metrics-users-title">🏆 Most Active Users</p>
+            <div className="metrics-users-list">
+              {Array.isArray(metrics.top_users) &&
+                metrics.top_users.slice(0, 5).map((u, i) => {
+                  const actions = u.total_actions ?? u.actions ?? 0;
+                  const pct = maxActions > 0 ? (actions / maxActions) * 100 : 0;
+                  return (
+                    <div key={i} className="metrics-user-row">
+                      <span className="metrics-user-rank">#{i + 1}</span>
+                      <span className="metrics-user-name">
+                        {u.username ?? u.email ?? `User ${i + 1}`}
+                      </span>
+                      <div className="metrics-user-bar-track">
+                        <div
+                          className={`metrics-user-bar-fill metrics-user-bar-fill--${i}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <span className="metrics-user-actions">{actions}</span>
+                    </div>
+                  );
+                })}
+            </div>
           </div>
         </div>
-      </div>
+        {/* end .metrics-grid */}
 
-      {/* Bar chart — no deposits/withdrawals */}
-      <div className="bg-slate-50 p-6 rounded-2xl">
-        <h3 className="text-base font-bold text-slate-700 mb-4">📈 Activity Breakdown</h3>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.25} />
-            <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
-            <YAxis tick={{ fontSize: 12, fill: '#64748b' }} />
-            <Tooltip
-              contentStyle={{
-                borderRadius: '12px',
-                border: 'none',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                fontSize: '13px',
-              }}
-            />
-            <Legend wrapperStyle={{ fontSize: '12px' }} />
-            <Bar dataKey="value" name="Count" fill="#38bdf8" radius={[6, 6, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Top users */}
-      {Array.isArray(metrics.top_users) && metrics.top_users.length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-base font-bold text-slate-700 mb-3">🏆 Most Active Users</h3>
-          <div className="space-y-2">
-            {metrics.top_users.slice(0, 5).map((u, i) => {
-              const actions = u.total_actions ?? u.actions ?? 0;
-              const maxA    = Math.max(...metrics.top_users.map(x => x.total_actions ?? x.actions ?? 0));
-              const pct     = maxA > 0 ? (actions / maxA) * 100 : 0;
-              const colors  = ['bg-sky-400','bg-violet-400','bg-amber-400','bg-emerald-400','bg-rose-400'];
-              return (
-                <div key={i} className="flex items-center gap-3">
-                  <span className="w-28 text-xs text-slate-500 truncate shrink-0">
-                    {u.username ?? u.email ?? `User ${i + 1}`}
-                  </span>
-                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${colors[i % colors.length]} transition-all duration-700`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                  <span className="w-8 text-right text-xs font-semibold text-slate-600">{actions}</span>
-                </div>
-              );
-            })}
-          </div>
+        {/* Footer */}
+        <div className="metrics-footer">
+          🔄 Auto-refreshing every 30 seconds · Data powered by wallet connects
+          + AI analyses
         </div>
-      )}
-
-      <div className="mt-6 px-4 py-3 bg-sky-50 rounded-xl text-xs text-sky-700">
-        🔄 Auto-refreshing every 30 seconds · Data powered by wallet connects + AI analyses
       </div>
     </div>
   );

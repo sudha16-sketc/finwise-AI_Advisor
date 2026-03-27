@@ -15,6 +15,7 @@ import {
   KitEventType,
 } from "./services/walletManager";
 import { API_BASE } from "./services/api";
+import MetricsDashboard from "./components/MetricsDashboard";
 
 export default function App() {
   const [publicKey, setPublicKey] = useState(
@@ -204,6 +205,7 @@ export default function App() {
                 />
               }
             />
+            <Route path="/metrics" element={<MetricsDashboard />} /> 
           </Routes>
         </main>
       </div>

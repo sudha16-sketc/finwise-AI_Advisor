@@ -141,6 +141,7 @@ function SendTransaction({
 
         {isConnected && (
           <div className="dashboard-section wallet-info">
+            
             <div className="wallet-address">
               <strong>Wallet:</strong> {publicKey.slice(0, 6)}...
               {publicKey.slice(-6)}

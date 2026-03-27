@@ -12,18 +12,20 @@ import { authStorage } from "../services/auth";
 import RiskBadge from "../components/RiskBadge";
 import BudgetChart from "../components/BudgetChart";
 import SavingsChart from "../components/SavingsChart";
-import Txhistory from "../components/TxHistory";
 import { getStats } from "../services/stellarPiggy";
-import MetricsDashboard from "../components/MetricsDashboard";
 
 function StatCard({ Icon, label, value, sub, color }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center shrink-0`}>
+      <div
+        className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center shrink-0`}
+      >
         <Icon className="w-6 h-6 text-white" />
       </div>
       <div>
-        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">{label}</p>
+        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">
+          {label}
+        </p>
         <p className="text-2xl font-extrabold text-slate-800">{value}</p>
         {sub && <p className="text-xs text-slate-400">{sub}</p>}
       </div>
@@ -110,9 +112,12 @@ export default function Dashboard({ publicKey }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-sky-50 px-4">
         <div className="text-center bg-white rounded-3xl p-10 shadow-sm border border-slate-100 max-w-md">
-          <p className="text-rose-500 font-semibold mb-2">Could not load dashboard</p>
+          <p className="text-rose-500 font-semibold mb-2">
+            Could not load dashboard
+          </p>
           <p className="text-slate-500 text-sm mb-6">
-            {error || "Run a financial analysis first to populate your dashboard."}
+            {error ||
+              "Run a financial analysis first to populate your dashboard."}
           </p>
           <button
             onClick={fetchProfile}
@@ -128,12 +133,15 @@ export default function Dashboard({ publicKey }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-sky-50 py-10 px-4">
       <div className="max-w-5xl mx-auto">
-
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-800">Dashboard</h1>
-            <p className="text-slate-500 text-sm mt-1">Welcome back, {profile.user_id}</p>
+            <h1 className="text-3xl font-extrabold text-slate-800">
+              Dashboard
+            </h1>
+            <p className="text-slate-500 text-sm mt-1">
+              Welcome back, {profile.user_id}
+            </p>
           </div>
           <button
             onClick={fetchProfile}
@@ -176,7 +184,9 @@ export default function Dashboard({ publicKey }) {
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
-            <h3 className="text-lg font-bold text-slate-800 mb-4">Savings Growth</h3>
+            <h3 className="text-lg font-bold text-slate-800 mb-4">
+              Savings Growth
+            </h3>
             <SavingsChart
               totalSaved={fromContractAmount(profile.total_saved)}
               streak={Number(profile.current_streak)}
@@ -185,7 +195,9 @@ export default function Dashboard({ publicKey }) {
           {profile.latest_advice && (
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-slate-800">Budget Allocation</h3>
+                <h3 className="text-lg font-bold text-slate-800">
+                  Budget Allocation
+                </h3>
                 <RiskBadge level={profile.latest_advice.risk_level} size="sm" />
               </div>
               <BudgetChart budgetPlan={profile.latest_advice.budget_plan} />
@@ -196,39 +208,42 @@ export default function Dashboard({ publicKey }) {
         {/* Latest Advice */}
         {profile.latest_advice && (
           <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 animate-slide-up">
-            <h3 className="text-lg font-bold text-slate-800 mb-4">Latest AI Recommendations</h3>
+            <h3 className="text-lg font-bold text-slate-800 mb-4">
+              Latest AI Recommendations
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Tax Savings</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  Tax Savings
+                </p>
                 <ul className="space-y-1.5">
-                  {profile.latest_advice.tax_saving_suggestions.slice(0, 3).map((s, i) => (
-                    <li key={i} className="text-sm text-slate-600 flex gap-2">
-                      <span className="text-amber-500 font-bold">•</span> {s}
-                    </li>
-                  ))}
+                  {profile.latest_advice.tax_saving_suggestions
+                    .slice(0, 3)
+                    .map((s, i) => (
+                      <li key={i} className="text-sm text-slate-600 flex gap-2">
+                        <span className="text-amber-500 font-bold">•</span> {s}
+                      </li>
+                    ))}
                 </ul>
               </div>
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Income Growth</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  Income Growth
+                </p>
                 <ul className="space-y-1.5">
-                  {profile.latest_advice.income_growth_suggestions.slice(0, 3).map((s, i) => (
-                    <li key={i} className="text-sm text-slate-600 flex gap-2">
-                      <span className="text-sky-500 font-bold">•</span> {s}
-                    </li>
-                  ))}
+                  {profile.latest_advice.income_growth_suggestions
+                    .slice(0, 3)
+                    .map((s, i) => (
+                      <li key={i} className="text-sm text-slate-600 flex gap-2">
+                        <span className="text-sky-500 font-bold">•</span> {s}
+                      </li>
+                    ))}
                 </ul>
               </div>
             </div>
           </div>
         )}
-
-        <MetricsDashboard />
-        <div>
-          <Txhistory publicKey={publicKey} />
-        </div>
-
       </div>
     </div>
   );
 }
-
