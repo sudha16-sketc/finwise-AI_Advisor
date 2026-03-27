@@ -13,8 +13,9 @@
 ## Demo Video
 
 **Full MVP walkthrough — wallet connect, AI analysis, XLM send, piggy bank streak:**
+https://github.com/user-attachments/assets/e0b15652-6c5d-4847-a7f5-971fb8a2b5cf
 
-https://github.com/user-attachments/assets/b80716df-a6a6-4ff2-9cca-1af8eb5dcd0a
+https://github.com/user-attachments/assets/5c90d0f8-df5a-4c60-a239-2282336029b6
 
 > *The video demonstrates: landing page → wallet connection → Google OAuth → AI financial analysis → XLM send transaction → transaction history → piggy bank savings streak → dashboard stats.*
 
@@ -93,7 +94,8 @@ To encourage consistency, FinWise AI rewards users for maintaining saving streak
 ## Screenshots
 
 ### Home Page
-<img width="1902" height="933" alt="Home Page" src="https://github.com/user-attachments/assets/0c5c8ffd-06a0-46ff-a273-3337ed55db52" />
+<img width="1904" height="928" alt="image" src="https://github.com/user-attachments/assets/8ee94745-8e18-44cf-97d5-a1970f12ce0a" />
+
 
 ### Wallet Connection with Google Sign-In Option
 <img width="1918" height="929" alt="Wallet Connection" src="https://github.com/user-attachments/assets/149b1ef3-180f-4b11-b68a-eb45b9e8ee44" />
@@ -102,31 +104,65 @@ To encourage consistency, FinWise AI rewards users for maintaining saving streak
 <img width="1919" height="928" alt="Google OAuth" src="https://github.com/user-attachments/assets/46d0b786-268b-4886-80e4-f7da2d07bf84" />
 
 ### Balance & Send XLM
-<img width="1919" height="929" alt="Balance and Send" src="https://github.com/user-attachments/assets/c32226a7-2110-4c77-ac31-c2706492890a" />
+<img width="1919" height="929" alt="image" src="https://github.com/user-attachments/assets/c616c8a1-0ad4-43a4-b3f7-0b41a4532af0" />
+
 
 ### Transaction History
-<img width="1919" height="932" alt="Transaction History" src="https://github.com/user-attachments/assets/07f15af3-3142-4e5b-8f71-d94f6eff7fb5" />
+<img width="1919" height="928" alt="image" src="https://github.com/user-attachments/assets/f060f8a2-d239-4e20-a28f-3193a1ab6185" />
+
 
 ### AI Financial Analysis & Advisor
 <img width="1902" height="927" alt="AI Analysis" src="https://github.com/user-attachments/assets/67c35e66-1da2-46d4-a48c-37d1b2988180" />
 
-### Dashboard
-<img width="1896" height="931" alt="Dashboard" src="https://github.com/user-attachments/assets/08d0166d-7478-44ac-9861-0bdb2207a5c2" />
+### Profile Dashboard
+<img width="1919" height="929" alt="image" src="https://github.com/user-attachments/assets/44aefbc8-8cf0-4d38-af4d-3494e206d72d" />
+
 
 ### Piggy Bank — Savings Streak
-<img width="1900" height="923" alt="Piggy Bank" src="https://github.com/user-attachments/assets/b174f393-496e-42b1-a634-8543e31c29c3" />
+<img width="1919" height="926" alt="image" src="https://github.com/user-attachments/assets/1b923b71-1fae-4bf2-b7c7-20c5ffdc9307" />
+
 
 ### About Section
-<img width="1919" height="928" alt="About Section" src="https://github.com/user-attachments/assets/3f77b8d1-3f16-4100-acc5-863be33fa4ca" />
+<img width="1919" height="930" alt="image" src="https://github.com/user-attachments/assets/161431b4-9177-49b7-9c0d-586e050c63dc" />
+
+### Matric Dashboard
+<img width="1899" height="928" alt="image" src="https://github.com/user-attachments/assets/21ae064a-dc01-4491-8052-ee8b6e126a10" />
 
 ---
 
 ## Mobile Responsive View
 
-<img width="754" height="932" alt="Mobile 1" src="https://github.com/user-attachments/assets/f0bc2a5e-1dd8-4173-9589-897506bda4f0" />
-<img width="795" height="932" alt="Mobile 2" src="https://github.com/user-attachments/assets/963e6423-f13c-4ce7-8f8a-2cd8b6749b08" />
-<img width="790" height="931" alt="Mobile 3" src="https://github.com/user-attachments/assets/404c74b6-d942-4814-91db-d3dc18678fb2" />
-<img width="841" height="934" alt="Mobile 4" src="https://github.com/user-attachments/assets/56fec22a-cd32-4858-984b-00dbed29b4b5" />
+### Home Page
+<img width="466" height="817" alt="image" src="https://github.com/user-attachments/assets/a0ffd330-6408-4a6a-ab13-3d2cee42b5b0" />
+
+### Wallet Connection with Google Sign-In Option
+<img width="464" height="817" alt="image" src="https://github.com/user-attachments/assets/7ee5dc8e-a75d-4613-a3f7-79658da7648b" />
+
+### About Section
+<img width="466" height="825" alt="image" src="https://github.com/user-attachments/assets/f6b2765e-8a5d-4d01-81c1-042fbed4f91e" />
+
+### Menu 
+<img width="461" height="823" alt="image" src="https://github.com/user-attachments/assets/592e521d-d640-4f5e-bfd3-6160f9470702" />
+
+### AI Financial Analysis & Advisor
+<img width="469" height="817" alt="image" src="https://github.com/user-attachments/assets/bb19be08-0dec-45b9-8ec4-be68dcbb7e04" />
+
+### Balance & Send XLM
+<img width="463" height="823" alt="image" src="https://github.com/user-attachments/assets/b135c54c-bb3f-4eb5-ba84-d1d9e277b3f3" />
+
+### Transaction History 
+<img width="464" height="822" alt="image" src="https://github.com/user-attachments/assets/4b97c229-f1f1-4fbf-8d73-8f1e0fec9499" />
+
+### Profile Dashboard
+<img width="467" height="824" alt="image" src="https://github.com/user-attachments/assets/1429c02c-096d-406f-ad2d-6917653d6088" />
+
+### Piggy Bank — Savings Streak
+<img width="465" height="815" alt="image" src="https://github.com/user-attachments/assets/f50d19c5-3ecc-40e6-a6ed-3118f6527a18" />
+
+### Matric Dashboard
+<img width="463" height="823" alt="image" src="https://github.com/user-attachments/assets/161c806e-999c-4da7-ad83-b468577ee971" />
+
+
 
 ---
 
