@@ -55,12 +55,20 @@ pub async fn get_balance(address: web::Path<String>) -> impl Responder {
 
     match stellar::fetch_account_balance(&address).await {
         Ok(balance) => HttpResponse::Ok().json(BalanceResponse { balance, address }),
-        Err(e) => {
-            log::error!("Failed to fetch balance for {}: {}", address, e);
-            HttpResponse::InternalServerError().json(ErrorResponse {
-                error: "fetch_failed".to_string(),
-                message: format!("Failed to fetch balance: {}", e),
-            })
+            Err(e) => {
+                let err_msg = e.to_string();
+                log::error!("Failed to fetch balance for {}: {}", address, err_msg);
+                if err_msg.contains("Account not found") || err_msg.contains("404") {
+                    HttpResponse::NotFound().json(ErrorResponse {
+                        error: "account_not_found".to_string(),
+                        message: "Stellar account does not exist. Please fund your wallet to activate it.".to_string(),
+                    })
+                } else {
+                    HttpResponse::InternalServerError().json(ErrorResponse {
+                        error: "balance_fetch_failed".to_string(),
+                        message: err_msg,
+                    })
+                }
         }
     }
 }

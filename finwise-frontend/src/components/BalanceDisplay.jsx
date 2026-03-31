@@ -13,13 +13,22 @@ function BalanceDisplay({ publicKey, refreshTrigger }) {
     setError(null);
 
     try {
-
       const balanceData = await fetchBalance(publicKey);
       setBalance(balanceData);
     } catch (apiError) {
+      // Check for account not found error from backend
+      const msg = apiError?.response?.data?.error || apiError?.message || "";
+      if (
+        msg === "account_not_found" ||
+        (apiError?.response?.status === 404 && apiError?.response?.data?.message?.includes("Stellar account does not exist"))
+      ) {
+        setError(
+          "Your Stellar wallet is not yet created or funded. Please fund your wallet to activate it."
+        );
+        setBalance(null);
+        return;
+      }
       console.warn("Backend API failed, trying direct Stellar call:", apiError);
-
-
       try {
         const directBalance = await fetchBalanceDirect(publicKey);
         setBalance(directBalance);
