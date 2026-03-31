@@ -60,7 +60,7 @@ export default function Dashboard({ publicKey }) {
     if (!publicKey) return;
 
     // Don't fetch if we have no token at all
-    if (!authStorage.isLoggedIn()) {
+    if (!tokenStore.isLoggedIn()) {
       setError("Not logged in");
       return;
     }
