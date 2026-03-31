@@ -312,6 +312,13 @@ Application monitoring is implemented using Render's built-in logging system.
 
 ### Notes
 Logs include timestamps, request origin, response status, and latency, providing full visibility into backend behavior.
+
+---
+## Community Contribution
+
+Twitter Post:
+[https://x.com/SutarSudar56081/status/2039040383485956204?s=20](https://x.com/SutarSudar56081/status/2039040383485956204?s=20)
+
 ---
 ## 🏗 Architecture
 
