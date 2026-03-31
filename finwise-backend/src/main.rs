@@ -216,7 +216,7 @@ async fn signup(
     let cookie = build_auth_cookie(&token);
     HttpResponse::Created()
         .cookie(cookie)
-        .json(json!({ "message": "Signup successful" }))
+        .json(json!({ "message": "Signup successful", "token": token }))
 }
 
 async fn login(
@@ -256,7 +256,7 @@ async fn login(
                 let cookie = build_auth_cookie(&token);
                 return HttpResponse::Ok()
                     .cookie(cookie)
-                    .json(json!({ "message": "Login successful" }));
+                    .json(json!({ "message": "Login successful", "token": token }));
             }
         }
     }
@@ -302,13 +302,22 @@ async fn check_auth(
         .unwrap();
 
     if let Some(user) = user {
+        // Always return a fresh JWT for the user (for Google OAuth sync and session refresh)
+        let token = match create_jwt(&auth.0) {
+            Ok(t) => t,
+            Err(e) => {
+                log::error!("❌ Failed to create JWT in check_auth: {}", e);
+                return HttpResponse::InternalServerError().json(json!({ "message": "Failed to create session" }));
+            }
+        };
         return HttpResponse::Ok().json(json!({
             "authenticated": true,
             "user": {
                 "username": user.username,
                 "email": user.email,
                 "wallet_address": user.wallet_address
-            }
+            },
+            "token": token
         }));
     }
 

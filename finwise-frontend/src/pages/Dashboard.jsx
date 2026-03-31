@@ -7,8 +7,7 @@ import {
   Loader2,
   RefreshCw,
 } from "lucide-react";
-import { finwiseApi } from "../services/api";
-import { authStorage } from "../services/auth";
+import { finwiseApi, tokenStore } from "../services/api";
 import RiskBadge from "../components/RiskBadge";
 import BudgetChart from "../components/BudgetChart";
 import SavingsChart from "../components/SavingsChart";
@@ -43,14 +42,17 @@ export default function Dashboard({ publicKey }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ── Capture JWT from Google OAuth redirect ──────────────────────────────
+  // ── Capture JWT from Google OAuth redirect or /api/check-auth ───────────
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
-      authStorage.setToken(token);
+      tokenStore.set(token);
       // Remove token from URL so it doesn't sit in browser history
       window.history.replaceState({}, "", window.location.pathname);
+    } else if (!tokenStore.get()) {
+      // If no token in localStorage, try to get it from backend (Google OAuth flow)
+      finwiseApi.checkAuth().catch(() => {});
     }
   }, []);
 
