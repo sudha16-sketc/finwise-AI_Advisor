@@ -187,7 +187,7 @@ This project uses native **XLM** on Stellar Testnet. No custom token has been de
 
 The following wallet addresses have interacted with the FinWise platform and are verifiable on the Stellar Testnet Explorer.
 
-| # | Wallet Address | Explorer Link | Role |
+| # | Wallet Address | Explorer Link | User Email |
 |---|---|---|---|
 | 1 | `GCDCQIYZ7N5M4ND625BK7FGGGANTJJDW5KFFUMIWEOOYCIR27WA7ZT6M` | [View](https://stellar.expert/explorer/testnet/account/GCDCQIYZ7N5M4ND625BK7FGGGANTJJDW5KFFUMIWEOOYCIR27WA7ZT6M) | deepakgupta4142434445464748@gmail.com |
 | 2 | `GDD5YF3VBRFACXBEOL572U4BOHUK2XAYVQ33H56SBMDSJSQX4ICAUKLO` | [View](https://stellar.expert/explorer/testnet/account/GDD5YF3VBRFACXBEOL572U4BOHUK2XAYVQ33H56SBMDSJSQX4ICAUKLO) | sutarsudarshan621@gmail.com |
@@ -212,6 +212,13 @@ The following feedback was collected from real users who tested the FinWise AI p
 https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZwDws89-sNGKGNdCNaYpNcOtZtE6CvGjqAAOEAOA5Hvdo2ShF4S3veYncBapYMoq_bMTycM9HAwa/pubhtml
 
 ---
+
+### Changes made based on the feedback of the user
+
+| # | User Email                                                      | Feedback                                                                                                                     | Commit ID                                |
+| - | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| 1 | [pratikshaspark12@gmail.com](mailto:pratikshaspark12@gmail.com) | Improve the Send XML page UI; other functionalities are working well.                                                        | 1286e69426c12bcf26f0cdb0b077b8464cf12d77 |
+| 2 | [vedmalkunaik@gmail.com](mailto:vedmalkunaik@gmail.com)         | Dashboard failed to load. Google sign-in is not working. Piggy bank and AI fund analysis features are functioning correctly. | c8d28573ac21e518b4798de73257768748751c12 |
 
 
 ## 🛠 Technology Stack
