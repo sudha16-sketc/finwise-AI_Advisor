@@ -8,11 +8,9 @@ const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30_000,
-<<<<<<< HEAD
   withCredentials: true,
-=======
-  withCredentials: true,   // ← THIS is the critical fix; sends cookies cross-origin
->>>>>>> 9ece895 (Security checklist completed)
+
+
 })
 
 // No token injection needed — the HttpOnly cookie is sent automatically
