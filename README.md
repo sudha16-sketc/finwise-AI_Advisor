@@ -44,6 +44,7 @@ https://github.com/user-attachments/assets/5c90d0f8-df5a-4c60-a239-2282336029b6
 - [License](#-license)
 - [Advanced Feature](#-Advanced Feature)
 - [Data Indexing](#-Data Indexing)
+- [Monitoring & Logs](#-Monitoring & Logs)
 ---
 
 
@@ -287,6 +288,30 @@ https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZwDws89-sNGKGNdCNaYpNcOtZtE6C
 ### Analysis data indexing 
 <img width="1786" height="660" alt="Screenshot 2026-03-31 215400" src="https://github.com/user-attachments/assets/981e2eb3-3525-422e-b2ab-74f634397c4a" />
 
+---
+## Monitoring & Logs
+
+Application monitoring is implemented using Render's built-in logging system.
+
+### Features
+- Real-time HTTP request logging
+- API usage tracking across endpoints
+- Error visibility with status codes
+- CORS preflight monitoring (OPTIONS requests)
+
+### Proof
+<img width="1514" height="709" alt="image" src="https://github.com/user-attachments/assets/457acce2-8e36-4f0c-8861-2852e9f7cb83" />
+
+<img width="1432" height="707" alt="image" src="https://github.com/user-attachments/assets/2b34630c-5834-43a2-ad7a-49eb07ef095c" />
+
+### Sample Logs
+- GET /api/metrics → 200 OK
+- GET /api/check-auth → 200 OK
+- OPTIONS /api/metrics → 200 OK
+- GET /api/test-error → 500 Internal Server Error
+
+### Notes
+Logs include timestamps, request origin, response status, and latency, providing full visibility into backend behavior.
 ---
 ## 🏗 Architecture
 
