@@ -33,7 +33,6 @@ import {
 import { formatAddress } from "../pages/stellarService";
 import "./WalletConnect.css";
 
-import { API_BASE as API } from "../services/api";
 import { API_BASE as API, tokenStore } from "../services/api";
 
 function WalletConnect({ publicKey, setPublicKey, isConnected, setIsConnected }) {
