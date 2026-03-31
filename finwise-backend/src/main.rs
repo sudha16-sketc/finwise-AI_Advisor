@@ -1,12 +1,15 @@
 use serde_json::json;
-use actix_web::{middleware, web, App, HttpServer, HttpResponse};
+use actix_web::{web, App, HttpServer, HttpResponse, cookie::{Cookie, SameSite}};
+use actix_web::middleware::Logger;
 use actix_cors::Cors;
+use actix_governor::{Governor, GovernorConfigBuilder};
 use serde::Deserialize;
 use mongodb::bson::{doc, oid::ObjectId, DateTime as BsonDateTime};
 use bcrypt::{hash, verify, DEFAULT_COST};
 use std::env;
 use dotenvy::dotenv;
 use reqwest::Client;
+use rand::{distributions::Alphanumeric, Rng};
 
 mod routes;
 mod stellar;
@@ -15,11 +18,16 @@ mod db;
 mod models;
 mod services;
 mod utils;
+mod app_middleware;
 
 use db::Database;
 use models::user::User;
 use utils::jwt::create_jwt;
 use utils::auth_extractor::AuthUser;
+use utils::validation::{validate_email, validate_password, validate_username, validate_wallet};
+use app_middleware::security_headers::SecurityHeaders;
+
+// ─── Request DTOs ────────────────────────────────────────────────────────────
 
 #[derive(Deserialize)]
 struct SignupRequest {
@@ -36,6 +44,8 @@ struct LoginRequest {
     password: String,
 }
 
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
@@ -46,7 +56,6 @@ async fn main() -> std::io::Result<()> {
         std::process::exit(1);
     });
 
-    // Validate JWT_SECRET is set at startup
     env::var("JWT_SECRET").unwrap_or_else(|_| {
         eprintln!("❌ JWT_SECRET not set in .env");
         std::process::exit(1);
@@ -56,14 +65,6 @@ async fn main() -> std::io::Result<()> {
         .unwrap_or_else(|_| "8080".to_string())
         .parse()
         .expect("PORT must be a number");
-    let bind_address = format!("0.0.0.0:{}", port);
-
-    println!("🚀 Server running at http://{}", bind_address);
-    log::info!("🚀 Starting server at http://{}", bind_address);
-    log::info!(
-        "🌍 Stellar Network: {}",
-        env::var("STELLAR_NETWORK").unwrap_or_else(|_| "TESTNET".to_string())
-    );
 
     let db = Database::new().await.unwrap_or_else(|e| {
         eprintln!("❌ Failed to connect to MongoDB: {e}");
@@ -77,6 +78,26 @@ async fn main() -> std::io::Result<()> {
 
     let db_data = web::Data::new(db);
 
+    // ── Global rate limiter: 20 req / 60 sec per IP ──────────────────────────
+    let global_governor_conf = GovernorConfigBuilder::default()
+        .per_second(3)          // ~20 req/min → 1 req / 3 sec burst window
+        .burst_size(20)
+        .finish()
+        .expect("Failed to build global governor config");
+
+    // ── Auth-specific rate limiter: 5 req / 10 sec per IP ────────────────────
+    let auth_governor_conf = GovernorConfigBuilder::default()
+        .per_second(2)          // 5 req / 10 sec → 1 req / 2 sec
+        .burst_size(5)
+        .finish()
+        .expect("Failed to build auth governor config");
+
+    log::info!("🚀 Starting server at http://0.0.0.0:{}", port);
+    log::info!(
+        "🌍 Stellar Network: {}",
+        env::var("STELLAR_NETWORK").unwrap_or_else(|_| "TESTNET".to_string())
+    );
+
     HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin("https://finwise-ai-advisor.vercel.app")
@@ -86,8 +107,12 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .app_data(db_data.clone())
+            // Security headers on every response
+            .wrap(SecurityHeaders)
             .wrap(cors)
-            .wrap(middleware::Logger::default())
+            .wrap(Logger::default())
+            // Global rate limit
+            .wrap(Governor::new(&global_governor_conf))
             .app_data(
                 web::JsonConfig::default().error_handler(|err, _req| {
                     let response = HttpResponse::BadRequest()
@@ -95,12 +120,22 @@ async fn main() -> std::io::Result<()> {
                     actix_web::error::InternalError::from_response(err, response).into()
                 }),
             )
-            .route("/api/signup", web::post().to(signup))
-            .route("/api/login", web::post().to(login))
-            .route("/api/logout", web::post().to(logout))
-            .route("/api/check-auth", web::get().to(check_auth))
+            // ── Auth routes (stricter rate limit) ────────────────────────────
             .service(
                 web::scope("/api")
+                    .service(
+                        web::resource("/signup")
+                            .wrap(Governor::new(&auth_governor_conf))
+                            .route(web::post().to(signup)),
+                    )
+                    .service(
+                        web::resource("/login")
+                            .wrap(Governor::new(&auth_governor_conf))
+                            .route(web::post().to(login)),
+                    )
+                    .route("/logout", web::post().to(logout))
+                    .route("/check-auth", web::get().to(check_auth))
+                    // ── Protected routes (JWT required via AuthUser extractor) ─
                     .route("/balance/{address}", web::get().to(routes::routes::get_balance))
                     .route("/transactions/{address}", web::get().to(routes::routes::get_transactions))
                     .route("/send", web::post().to(routes::routes::send_transaction))
@@ -121,14 +156,32 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-/* =============================
-   AUTH HANDLERS
-============================= */
+// ─── Auth Handlers ────────────────────────────────────────────────────────────
 
 async fn signup(
     db: web::Data<Database>,
     form: web::Json<SignupRequest>,
 ) -> HttpResponse {
+    // Input validation
+    if let Err(e) = validate_username(&form.username) {
+        log::warn!("Signup validation failed (username): {}", e);
+        return HttpResponse::BadRequest().json(json!({ "message": e }));
+    }
+    if let Err(e) = validate_email(&form.email) {
+        log::warn!("Signup validation failed (email): {}", e);
+        return HttpResponse::BadRequest().json(json!({ "message": e }));
+    }
+    if let Err(e) = validate_password(&form.password) {
+        log::warn!("Signup validation failed (password): {}", e);
+        return HttpResponse::BadRequest().json(json!({ "message": e }));
+    }
+    if let Some(wallet) = &form.walletAddress {
+        if let Err(e) = validate_wallet(wallet) {
+            log::warn!("Signup validation failed (wallet): {}", e);
+            return HttpResponse::BadRequest().json(json!({ "message": e }));
+        }
+    }
+
     let collection = db.collection::<User>("users");
 
     let existing = collection
@@ -137,6 +190,7 @@ async fn signup(
         .unwrap();
 
     if existing.is_some() {
+        log::warn!("Signup attempt with existing email: {}", form.email);
         return HttpResponse::BadRequest()
             .json(json!({ "message": "Email already exists" }));
     }
@@ -159,24 +213,23 @@ async fn signup(
     }
 
     let insert = collection.insert_one(new_user).await.unwrap();
-    let inserted_id = insert
-        .inserted_id
-        .as_object_id()
-        .expect("Expected ObjectId");
+    let inserted_id = insert.inserted_id.as_object_id().expect("Expected ObjectId");
 
     let token = match create_jwt(&inserted_id) {
         Ok(t) => t,
         Err(e) => {
-            log::error!("❌ Failed to create JWT: {}", e);
+            log::error!("❌ Failed to create JWT on signup: {}", e);
             return HttpResponse::InternalServerError()
                 .json(json!({ "message": "Failed to create session" }));
         }
     };
 
-    HttpResponse::Created().json(json!({
-        "message": "Signup successful",
-        "token": token
-    }))
+    log::info!("✅ New user registered: {}", form.email);
+
+    let cookie = build_auth_cookie(&token);
+    HttpResponse::Created()
+        .cookie(cookie)
+        .json(json!({ "message": "Signup successful" }))
 }
 
 async fn login(
@@ -206,26 +259,38 @@ async fn login(
                 let token = match create_jwt(&user_id) {
                     Ok(t) => t,
                     Err(e) => {
-                        log::error!("❌ Failed to create JWT: {}", e);
+                        log::error!("❌ Failed to create JWT on login: {}", e);
                         return HttpResponse::InternalServerError()
                             .json(json!({ "message": "Failed to create session" }));
                     }
                 };
 
-                return HttpResponse::Ok().json(json!({
-                    "message": "Login successful",
-                    "token": token
-                }));
+                log::info!("✅ Successful login: {}", form.email);
+                let cookie = build_auth_cookie(&token);
+                return HttpResponse::Ok()
+                    .cookie(cookie)
+                    .json(json!({ "message": "Login successful" }));
             }
         }
     }
 
+    log::warn!("⚠️ Failed login attempt for email: {}", form.email);
     HttpResponse::BadRequest().json(json!({ "message": "Invalid credentials" }))
 }
 
 async fn logout() -> HttpResponse {
-    // JWT is stateless — client just deletes the token
-    HttpResponse::Ok().json(json!({ "message": "Logout successful" }))
+    // Expire the HttpOnly cookie immediately
+    let expired = Cookie::build("auth_token", "")
+        .path("/")
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Strict)
+        .max_age(actix_web::cookie::time::Duration::seconds(0))
+        .finish();
+
+    HttpResponse::Ok()
+        .cookie(expired)
+        .json(json!({ "message": "Logout successful" }))
 }
 
 async fn check_auth(
@@ -260,21 +325,42 @@ async fn check_auth(
         }));
     }
 
+    log::warn!("⚠️ check-auth: user not found for id {:?}", auth.0);
     HttpResponse::Unauthorized().json(json!({ "authenticated": false }))
 }
+
+// ─── Google OAuth ─────────────────────────────────────────────────────────────
 
 async fn google_login() -> HttpResponse {
     let client_id = env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID not set");
     let redirect_uri = "https://finwise-ai-advisor.onrender.com/auth/google/callback";
 
+    // Generate a random CSRF state token
+    let state: String = rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(32)
+        .map(char::from)
+        .collect();
+
     let google_auth_url = format!(
         "https://accounts.google.com/o/oauth2/v2/auth\
          ?client_id={}&redirect_uri={}&response_type=code\
-         &scope=openid%20email%20profile&access_type=offline&prompt=consent",
-        client_id, redirect_uri
+         &scope=openid%20email%20profile&access_type=offline&prompt=consent\
+         &state={}",
+        client_id, redirect_uri, state
     );
 
+    // Store state in a short-lived HttpOnly cookie for validation in callback
+    let state_cookie = Cookie::build("oauth_state", state)
+        .path("/")
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Lax) // Lax required so cookie survives the redirect back
+        .max_age(actix_web::cookie::time::Duration::minutes(10))
+        .finish();
+
     HttpResponse::Found()
+        .cookie(state_cookie)
         .append_header(("Location", google_auth_url))
         .finish()
 }
@@ -282,7 +368,25 @@ async fn google_login() -> HttpResponse {
 async fn google_callback(
     db: web::Data<Database>,
     query: web::Query<std::collections::HashMap<String, String>>,
+    req: actix_web::HttpRequest,
 ) -> HttpResponse {
+    // ── CSRF state validation ─────────────────────────────────────────────────
+    let expected_state = req.cookie("oauth_state").map(|c| c.value().to_string());
+    let received_state = query.get("state").cloned();
+
+    match (expected_state, received_state) {
+        (Some(expected), Some(received)) if expected == received => {} // OK
+        _ => {
+            log::warn!("⚠️ OAuth CSRF state mismatch — possible CSRF attack");
+            return HttpResponse::Found()
+                .append_header((
+                    "Location",
+                    "https://finwise-ai-advisor.vercel.app/login?error=csrf_mismatch",
+                ))
+                .finish();
+        }
+    }
+
     if let Some(error) = query.get("error") {
         log::error!("❌ Google OAuth returned error: {}", error);
         return HttpResponse::Found()
@@ -330,22 +434,12 @@ async fn google_callback(
             Ok(json) => json,
             Err(e) => {
                 log::error!("❌ Failed to parse token response: {}", e);
-                return HttpResponse::Found()
-                    .append_header((
-                        "Location",
-                        "https://finwise-ai-advisor.vercel.app/login?error=token_parse_failed",
-                    ))
-                    .finish();
+                return redirect_error("token_parse_failed");
             }
         },
         Err(e) => {
             log::error!("❌ Token exchange request failed: {}", e);
-            return HttpResponse::Found()
-                .append_header((
-                    "Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=token_request_failed",
-                ))
-                .finish();
+            return redirect_error("token_request_failed");
         }
     };
 
@@ -355,67 +449,41 @@ async fn google_callback(
             err,
             token_res.get("error_description")
         );
-        return HttpResponse::Found()
-            .append_header((
-                "Location",
-                "https://finwise-ai-advisor.vercel.app/login?error=token_failed",
-            ))
-            .finish();
+        return redirect_error("token_failed");
     }
 
     let access_token = match token_res["access_token"].as_str() {
         Some(t) => t.to_string(),
         None => {
             log::error!("❌ No access_token in response: {:?}", token_res);
-            return HttpResponse::Found()
-                .append_header((
-                    "Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=no_access_token",
-                ))
-                .finish();
+            return redirect_error("no_access_token");
         }
     };
 
-    let userinfo_response = client
+    let user_info = match client
         .get("https://www.googleapis.com/oauth2/v2/userinfo")
         .bearer_auth(&access_token)
         .send()
-        .await;
-
-    let user_info = match userinfo_response {
+        .await
+    {
         Ok(res) => match res.json::<serde_json::Value>().await {
             Ok(json) => json,
             Err(e) => {
                 log::error!("❌ Failed to parse userinfo response: {}", e);
-                return HttpResponse::Found()
-                    .append_header((
-                        "Location",
-                        "https://finwise-ai-advisor.vercel.app/login?error=userinfo_parse_failed",
-                    ))
-                    .finish();
+                return redirect_error("userinfo_parse_failed");
             }
         },
         Err(e) => {
             log::error!("❌ Userinfo request failed: {}", e);
-            return HttpResponse::Found()
-                .append_header((
-                    "Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=userinfo_failed",
-                ))
-                .finish();
+            return redirect_error("userinfo_failed");
         }
     };
 
     let email = match user_info["email"].as_str() {
         Some(e) => e.to_string(),
         None => {
-            log::error!("❌ No email in userinfo response: {:?}", user_info);
-            return HttpResponse::Found()
-                .append_header((
-                    "Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=no_email",
-                ))
-                .finish();
+            log::error!("❌ No email in userinfo response");
+            return redirect_error("no_email");
         }
     };
 
@@ -426,26 +494,16 @@ async fn google_callback(
         Ok(result) => result,
         Err(e) => {
             log::error!("❌ MongoDB find_one failed: {}", e);
-            return HttpResponse::Found()
-                .append_header((
-                    "Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=db_error",
-                ))
-                .finish();
+            return redirect_error("db_error");
         }
     };
 
-    let user_id = if let Some(user) = existing {
+    let user_id: ObjectId = if let Some(user) = existing {
         match user.id {
             Some(id) => id,
             None => {
                 log::error!("❌ Existing user has no ObjectId");
-                return HttpResponse::Found()
-                    .append_header((
-                        "Location",
-                        "https://finwise-ai-advisor.vercel.app/login?error=user_id_missing",
-                    ))
-                    .finish();
+                return redirect_error("user_id_missing");
             }
         }
     } else {
@@ -465,22 +523,12 @@ async fn google_callback(
                 Some(id) => id,
                 None => {
                     log::error!("❌ Inserted ID is not an ObjectId");
-                    return HttpResponse::Found()
-                        .append_header((
-                            "Location",
-                            "https://finwise-ai-advisor.vercel.app/login?error=insert_id_error",
-                        ))
-                        .finish();
+                    return redirect_error("insert_id_error");
                 }
             },
             Err(e) => {
                 log::error!("❌ Failed to insert new user: {:?}", e);
-                return HttpResponse::Found()
-                    .append_header((
-                        "Location",
-                        "https://finwise-ai-advisor.vercel.app/login?error=insert_failed",
-                    ))
-                    .finish();
+                return redirect_error("insert_failed");
             }
         }
     };
@@ -495,29 +543,54 @@ async fn google_callback(
         )
         .await;
 
-    // Create JWT and pass it in the redirect URL instead of a cookie
     let token = match create_jwt(&user_id) {
         Ok(t) => t,
         Err(e) => {
             log::error!("❌ Failed to create JWT: {}", e);
-            return HttpResponse::Found()
-                .append_header((
-                    "Location",
-                    "https://finwise-ai-advisor.vercel.app/login?error=jwt_failed",
-                ))
-                .finish();
+            return redirect_error("jwt_failed");
         }
     };
 
     log::info!("✅ Google OAuth success for {}", email);
 
+    // Clear the CSRF state cookie
+    let clear_state = Cookie::build("oauth_state", "")
+        .path("/")
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Lax)
+        .max_age(actix_web::cookie::time::Duration::seconds(0))
+        .finish();
+
+    // Set JWT in HttpOnly, Secure cookie — NOT in the URL
+    let auth_cookie = build_auth_cookie(&token);
+
+    HttpResponse::Found()
+        .cookie(clear_state)
+        .cookie(auth_cookie)
+        .append_header(("Location", "https://finwise-ai-advisor.vercel.app/dashboard"))
+        .finish()
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/// Build the HttpOnly auth cookie for JWT storage.
+fn build_auth_cookie(token: &str) -> Cookie<'static> {
+    Cookie::build("auth_token", token.to_owned())
+        .path("/")
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Strict)
+        .max_age(actix_web::cookie::time::Duration::hours(1))
+        .finish()
+}
+
+/// Redirect to the frontend login page with a specific error code.
+fn redirect_error(code: &str) -> HttpResponse {
     HttpResponse::Found()
         .append_header((
             "Location",
-            format!(
-                "https://finwise-ai-advisor.vercel.app/dashboard?token={}",
-                token
-            ),
+            format!("https://finwise-ai-advisor.vercel.app/login?error={}", code),
         ))
         .finish()
 }

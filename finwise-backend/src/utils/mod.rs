@@ -64,3 +64,4 @@ pub type AppResult<T> = Result<T, AppError>;
 
 pub mod jwt;
 pub mod auth_extractor;
+pub mod validation;

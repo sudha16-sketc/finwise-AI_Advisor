@@ -4,33 +4,47 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rand = "0.8"
+# ── Rate limiting ─────────────────────────────────────────────────────────────
+actix-governor = "0.5"
+
+# ── Web framework ─────────────────────────────────────────────────────────────
 actix-web = { version = "4", features = ["cookies"] }
 actix-cors = "0.7"
 
+# ── Serialization ─────────────────────────────────────────────────────────────
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# ── Database ──────────────────────────────────────────────────────────────────
+# Added bson-chrono-0_4 so BsonDateTime ↔ chrono::DateTime conversions compile
+# ── Database ──────────────────────────────────────────────────────────────────
 mongodb = "3"
 bson = "2"
 
+# ── Environment / logging ─────────────────────────────────────────────────────
 dotenvy = "0.15"
 env_logger = "0.11"
 log = "0.4"
 
+# ── Auth ──────────────────────────────────────────────────────────────────────
 bcrypt = "0.15"
-anyhow = "1"
+jsonwebtoken = "9"
+oauth2 = "4"
 
+# ── HTTP client ───────────────────────────────────────────────────────────────
 reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
 
+# ── Async runtime ─────────────────────────────────────────────────────────────
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
 chrono = { version = "0.4", features = ["serde"] }
+rand = "0.8"
 regex = "1"
+anyhow = "1"
 thiserror = "1"
-futures-util = "0.3"
 futures = "0.3"
-oauth2 = "4"
-jsonwebtoken = "9"
+futures-util = "0.3"
 
 [build]
 target-dir = "target"
