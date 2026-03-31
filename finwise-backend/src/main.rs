@@ -27,8 +27,6 @@ use utils::auth_extractor::AuthUser;
 use utils::validation::{validate_email, validate_password, validate_username, validate_wallet};
 use app_middleware::security_headers::SecurityHeaders;
 
-// ─── Request DTOs ────────────────────────────────────────────────────────────
-
 #[derive(Deserialize)]
 struct SignupRequest {
     username: String,
@@ -43,8 +41,6 @@ struct LoginRequest {
     email: String,
     password: String,
 }
-
-// ─── Main ─────────────────────────────────────────────────────────────────────
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -78,16 +74,14 @@ async fn main() -> std::io::Result<()> {
 
     let db_data = web::Data::new(db);
 
-    // ── Global rate limiter: 20 req / 60 sec per IP ──────────────────────────
     let global_governor_conf = GovernorConfigBuilder::default()
-        .per_second(3)          // ~20 req/min → 1 req / 3 sec burst window
+        .per_second(3)
         .burst_size(20)
         .finish()
         .expect("Failed to build global governor config");
 
-    // ── Auth-specific rate limiter: 5 req / 10 sec per IP ────────────────────
     let auth_governor_conf = GovernorConfigBuilder::default()
-        .per_second(2)          // 5 req / 10 sec → 1 req / 2 sec
+        .per_second(2)
         .burst_size(5)
         .finish()
         .expect("Failed to build auth governor config");
@@ -107,11 +101,9 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .app_data(db_data.clone())
-            // Security headers on every response
             .wrap(SecurityHeaders)
             .wrap(cors)
             .wrap(Logger::default())
-            // Global rate limit
             .wrap(Governor::new(&global_governor_conf))
             .app_data(
                 web::JsonConfig::default().error_handler(|err, _req| {
@@ -120,7 +112,6 @@ async fn main() -> std::io::Result<()> {
                     actix_web::error::InternalError::from_response(err, response).into()
                 }),
             )
-            // ── Auth routes (stricter rate limit) ────────────────────────────
             .service(
                 web::scope("/api")
                     .service(
@@ -135,7 +126,6 @@ async fn main() -> std::io::Result<()> {
                     )
                     .route("/logout", web::post().to(logout))
                     .route("/check-auth", web::get().to(check_auth))
-                    // ── Protected routes (JWT required via AuthUser extractor) ─
                     .route("/balance/{address}", web::get().to(routes::routes::get_balance))
                     .route("/transactions/{address}", web::get().to(routes::routes::get_transactions))
                     .route("/send", web::post().to(routes::routes::send_transaction))
@@ -156,13 +146,10 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-// ─── Auth Handlers ────────────────────────────────────────────────────────────
-
 async fn signup(
     db: web::Data<Database>,
     form: web::Json<SignupRequest>,
 ) -> HttpResponse {
-    // Input validation
     if let Err(e) = validate_username(&form.username) {
         log::warn!("Signup validation failed (username): {}", e);
         return HttpResponse::BadRequest().json(json!({ "message": e }));
@@ -279,12 +266,12 @@ async fn login(
 }
 
 async fn logout() -> HttpResponse {
-    // Expire the HttpOnly cookie immediately
+    // ← SameSite::None so the expiry cookie is accepted cross-domain
     let expired = Cookie::build("auth_token", "")
         .path("/")
         .http_only(true)
         .secure(true)
-        .same_site(SameSite::Strict)
+        .same_site(SameSite::None)  // ✅ fixed
         .max_age(actix_web::cookie::time::Duration::seconds(0))
         .finish();
 
@@ -329,13 +316,10 @@ async fn check_auth(
     HttpResponse::Unauthorized().json(json!({ "authenticated": false }))
 }
 
-// ─── Google OAuth ─────────────────────────────────────────────────────────────
-
 async fn google_login() -> HttpResponse {
     let client_id = env::var("GOOGLE_CLIENT_ID").expect("GOOGLE_CLIENT_ID not set");
     let redirect_uri = "https://finwise-ai-advisor.onrender.com/auth/google/callback";
 
-    // Generate a random CSRF state token
     let state: String = rand::thread_rng()
         .sample_iter(&Alphanumeric)
         .take(32)
@@ -350,12 +334,11 @@ async fn google_login() -> HttpResponse {
         client_id, redirect_uri, state
     );
 
-    // Store state in a short-lived HttpOnly cookie for validation in callback
     let state_cookie = Cookie::build("oauth_state", state)
         .path("/")
         .http_only(true)
         .secure(true)
-        .same_site(SameSite::Lax) // Lax required so cookie survives the redirect back
+        .same_site(SameSite::Lax)
         .max_age(actix_web::cookie::time::Duration::minutes(10))
         .finish();
 
@@ -370,12 +353,11 @@ async fn google_callback(
     query: web::Query<std::collections::HashMap<String, String>>,
     req: actix_web::HttpRequest,
 ) -> HttpResponse {
-    // ── CSRF state validation ─────────────────────────────────────────────────
     let expected_state = req.cookie("oauth_state").map(|c| c.value().to_string());
     let received_state = query.get("state").cloned();
 
     match (expected_state, received_state) {
-        (Some(expected), Some(received)) if expected == received => {} // OK
+        (Some(expected), Some(received)) if expected == received => {}
         _ => {
             log::warn!("⚠️ OAuth CSRF state mismatch — possible CSRF attack");
             return HttpResponse::Found()
@@ -553,7 +535,6 @@ async fn google_callback(
 
     log::info!("✅ Google OAuth success for {}", email);
 
-    // Clear the CSRF state cookie
     let clear_state = Cookie::build("oauth_state", "")
         .path("/")
         .http_only(true)
@@ -562,7 +543,6 @@ async fn google_callback(
         .max_age(actix_web::cookie::time::Duration::seconds(0))
         .finish();
 
-    // Set JWT in HttpOnly, Secure cookie — NOT in the URL
     let auth_cookie = build_auth_cookie(&token);
 
     HttpResponse::Found()
@@ -574,18 +554,16 @@ async fn google_callback(
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/// Build the HttpOnly auth cookie for JWT storage.
 fn build_auth_cookie(token: &str) -> Cookie<'static> {
     Cookie::build("auth_token", token.to_owned())
         .path("/")
         .http_only(true)
         .secure(true)
-        .same_site(SameSite::Strict)
+        .same_site(SameSite::None)  // ✅ fixed — was Strict, must be None for cross-domain
         .max_age(actix_web::cookie::time::Duration::hours(1))
         .finish()
 }
 
-/// Redirect to the frontend login page with a specific error code.
 fn redirect_error(code: &str) -> HttpResponse {
     HttpResponse::Found()
         .append_header((
