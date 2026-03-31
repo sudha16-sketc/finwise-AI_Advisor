@@ -4,6 +4,14 @@ use crate::models::user::User;
 use mongodb::bson::{doc, DateTime as BsonDateTime};
 use futures_util::TryStreamExt;
 
+
+#[derive(serde::Serialize)]
+pub struct TopUser {
+    pub username: Option<String>,
+    pub email: Option<String>,
+    pub total_actions: Option<i64>,
+}
+
 #[derive(serde::Serialize)]
 pub struct Metrics {
     pub total_users: u64,
@@ -13,6 +21,7 @@ pub struct Metrics {
     pub total_connects: u64,
     pub total_analyses: u64,
     pub avg_actions_per_user: f64,
+    pub top_users: Vec<TopUser>,
 }
 
 pub async fn get_metrics(db: &Database) -> Result<Metrics, String> {
@@ -77,6 +86,25 @@ pub async fn get_metrics(db: &Database) -> Result<Metrics, String> {
         0.0
     };
 
+    // Top 5 users by total_actions
+    let mut top_users: Vec<TopUser> = vec![];
+    let mut cursor = users
+        .find(None, None)
+        .await
+        .map_err(|e| format!("DB error: {}", e))?;
+    let mut all_users: Vec<User> = vec![];
+    while let Some(user) = cursor.try_next().await.unwrap_or(None) {
+        all_users.push(user);
+    }
+    all_users.sort_by(|a, b| b.total_actions.cmp(&a.total_actions));
+    for user in all_users.into_iter().take(5) {
+        top_users.push(TopUser {
+            username: Some(user.username),
+            email: Some(user.email),
+            total_actions: Some(user.total_actions),
+        });
+    }
+
     Ok(Metrics {
         total_users,
         active_users_24h,
@@ -85,5 +113,6 @@ pub async fn get_metrics(db: &Database) -> Result<Metrics, String> {
         total_connects,
         total_analyses,
         avg_actions_per_user,
+        top_users,
     })
 }

@@ -5,10 +5,9 @@ use actix_web::{web, HttpResponse};
 use serde_json::json;
 use crate::db::Database;
 use crate::services::get_metrics;
-use crate::utils::auth_extractor::AuthUser;
+
 
 pub async fn metrics_handler(
-    _auth: AuthUser,
     db: web::Data<Database>,
 ) -> HttpResponse {
     match get_metrics(&db).await {
