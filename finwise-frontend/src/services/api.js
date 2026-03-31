@@ -9,15 +9,11 @@ const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30_000,
-  // withCredentials removed — no longer using cookies
+  withCredentials: true,
 })
 
 // Attach JWT to every request automatically
 api.interceptors.request.use((config) => {
-  const token = authStorage.getToken()
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`
-  }
   console.log(`[API REQUEST] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
   console.log('[API REQUEST] Payload:', config.data || config.params || 'none')
   return config
