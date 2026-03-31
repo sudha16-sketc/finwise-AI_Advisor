@@ -5,6 +5,7 @@ use mongodb::bson::{doc, DateTime as BsonDateTime};
 use futures_util::TryStreamExt;
 
 
+
 #[derive(serde::Serialize)]
 pub struct TopUser {
     pub username: Option<String>,
@@ -89,7 +90,7 @@ pub async fn get_metrics(db: &Database) -> Result<Metrics, String> {
     // Top 5 users by total_actions
     let mut top_users: Vec<TopUser> = vec![];
     let mut cursor = users
-        .find(None, None)
+        .find(doc! {})
         .await
         .map_err(|e| format!("DB error: {}", e))?;
     let mut all_users: Vec<User> = vec![];
