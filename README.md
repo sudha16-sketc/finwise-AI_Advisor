@@ -42,8 +42,10 @@ https://github.com/user-attachments/assets/5c90d0f8-df5a-4c60-a239-2282336029b6
 - [CI/CD Status](#-cicd-status)
 - [Contributing](#-contributing)
 - [License](#-license)
-
+- [Advanced Feature](#-Advanced Feature)
+- [Data Indexing](#-Data Indexing)
 ---
+
 
 ## Overview
 
@@ -262,7 +264,30 @@ https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZwDws89-sNGKGNdCNaYpNcOtZtE6C
 | GitHub Actions | CI/CD pipeline |
 
 ---
+## Advanced Feature
 
+### AI Financial Analysis & Advisor: AI-powered daily savings and smart budgeting companion designed for students and young earners to build consistent financial habits.
+<img width="469" height="817" alt="image" src="https://github.com/user-attachments/assets/bb19be08-0dec-45b9-8ec4-be68dcbb7e04" />
+
+### Piggy Bank — Savings Streak: Users can deposit daily savings on the blockchain, creating a consistent saving habit.
+<img width="465" height="815" alt="image" src="https://github.com/user-attachments/assets/f50d19c5-3ecc-40e6-a6ed-3118f6527a18" />
+
+---
+## Data Indexing
+
+### User data indexing
+<img width="1806" height="727" alt="Screenshot 2026-03-31 215308" src="https://github.com/user-attachments/assets/fe1639b4-eacf-41d8-b6a8-063c5d5b5ea6" />
+
+### Transaction data indexing
+<img width="1806" height="658" alt="Screenshot 2026-03-31 215321" src="https://github.com/user-attachments/assets/47075224-3562-4396-9530-dedbb169ef26" />
+
+### Profiles Data indexing
+<img width="1796" height="664" alt="Screenshot 2026-03-31 215336" src="https://github.com/user-attachments/assets/99e2e6f6-259b-4cec-a5b8-c7f2852a8bb9" />
+
+### Analysis data indexing 
+<img width="1786" height="660" alt="Screenshot 2026-03-31 215400" src="https://github.com/user-attachments/assets/981e2eb3-3525-422e-b2ab-74f634397c4a" />
+
+---
 ## 🏗 Architecture
 
 ```
