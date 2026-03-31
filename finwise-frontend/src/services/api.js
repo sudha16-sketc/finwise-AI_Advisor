@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { authStorage } from './auth'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://finwise-ai-advisor.onrender.com'
 
@@ -9,10 +8,14 @@ const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30_000,
+<<<<<<< HEAD
   withCredentials: true,
+=======
+  withCredentials: true,   // ← THIS is the critical fix; sends cookies cross-origin
+>>>>>>> 9ece895 (Security checklist completed)
 })
 
-// Attach JWT to every request automatically
+// No token injection needed — the HttpOnly cookie is sent automatically
 api.interceptors.request.use((config) => {
   console.log(`[API REQUEST] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`)
   console.log('[API REQUEST] Payload:', config.data || config.params || 'none')
@@ -30,10 +33,8 @@ api.interceptors.response.use(
       data: err.response?.data,
       message: err.message,
     })
-    // If token is expired or invalid, clear it and redirect to login
     if (err.response?.status === 401) {
-      authStorage.removeToken()
-      window.location.href = '/login'
+      window.location.href = '/login'   // no token to clear — cookie expiry is handled by backend
     }
     const message =
       err.response?.data?.message ||
@@ -45,23 +46,20 @@ api.interceptors.response.use(
 )
 
 export const finwiseApi = {
-  // Auth
+  // Auth — backend sets the HttpOnly cookie in the response automatically
   signup: async ({ username, email, password, walletAddress }) => {
     const { data } = await api.post('/api/signup', { username, email, password, walletAddress })
-    if (data.token) authStorage.setToken(data.token)
-    return data
+    return data   // no token in response body with cookie-based auth
   },
 
   login: async ({ email, password }) => {
     const { data } = await api.post('/api/login', { email, password })
-    if (data.token) authStorage.setToken(data.token)
     return data
   },
 
   logout: async () => {
-    authStorage.removeToken()
     const { data } = await api.post('/api/logout')
-    return data
+    return data   // backend expires the cookie
   },
 
   checkAuth: async () => {
@@ -101,7 +99,6 @@ export const finwiseApi = {
     return data
   },
 
-  // Health
   health: async () => {
     const { data } = await api.get('/health')
     return data
