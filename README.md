@@ -44,6 +44,7 @@ https://github.com/user-attachments/assets/5c90d0f8-df5a-4c60-a239-2282336029b6
 - [License](#-license)
 - [Advanced Feature](#-Advanced Feature)
 - [Data Indexing](#-Data Indexing)
+- [metrics dashboard](#-metrics dashboard)
 - [Monitoring & Logs](#-Monitoring & Logs)
 ---
 
@@ -199,6 +200,25 @@ The following wallet addresses have interacted with the FinWise platform and are
 | 5 | `GDFNCO4KZN7VZJTCYWPJYQN2WJGKJY46PN2AR6FA2WB35YMU3Q2U6JQE` | [View](https://stellar.expert/explorer/testnet/account/GDFNCO4KZN7VZJTCYWPJYQN2WJGKJY46PN2AR6FA2WB35YMU3Q2U6JQE) | pratikshaspark12@gmail.com |
 | 6 | `GACUAJJ5XYAOHFRNASQU472IEZHMU5G37CLNPGKA7HK55MEFZV6ZJQ45` | [View](https://stellar.expert/explorer/testnet/account/GACUAJJ5XYAOHFRNASQU472IEZHMU5G37CLNPGKA7HK55MEFZV6ZJQ45) | vedmalkunaik@gmail.com |
 | 7 | `GBFP6DQ6V2TODBDCEFHO6R5NAX3FDPNSREKQBFQUZSY5FWJR3HXVQO6Q` | [View](https://stellar.expert/explorer/testnet/account/GBFP6DQ6V2TODBDCEFHO6R5NAX3FDPNSREKQBFQUZSY5FWJR3HXVQO6Q) | shrirammasalge8@gmail.com |
+| 8 | `GCATAASNFHODIKA4VTIEZHONZB3BGZJL42FXHHZ3VS6YKX2PCDIJ3LDY` | [View](https://stellar.expert/explorer/testnet/account/GCATAASNFHODIKA4VTIEZHONZB3BGZJL42FXHHZ3VS6YKX2PCDIJ3LDY) | harshaljagdale0296@gmail.com |
+| 9 | `GCWHSFPEKYG5OYYQT2M5VRRVM3LSCXACMBNKSZUTH7XCIUGQTGFDAYWD` | [View](https://stellar.expert/explorer/testnet/account/GCWHSFPEKYG5OYYQT2M5VRRVM3LSCXACMBNKSZUTH7XCIUGQTGFDAYWD) | nevsesamruddhi@gmail.com |
+| 10 | `GDE5TLWQDMJQI2YBSPN2GKKU5RUFPW7RYEML5JHCZRUKHHJCE6JGJRA5` | [View](https://stellar.expert/explorer/testnet/account/GDE5TLWQDMJQI2YBSPN2GKKU5RUFPW7RYEML5JHCZRUKHHJCE6JGJRA5) | walanjkavita60@gmail.com |
+| 11 | `GADY24FFOBCTVQJIBCP6OCX6QPVODAQM4IEMYUKS5VSVN564XQPSWXGY` | [View](https://stellar.expert/explorer/testnet/account/GADY24FFOBCTVQJIBCP6OCX6QPVODAQM4IEMYUKS5VSVN564XQPSWXGY) | shubhamgolekar62021@gmail.com |
+| 12 | `GBTCO5WSTBEMWTLI7CXNDMFHJV7NTIPIAHTPRRNW3LC5HDNZI6M5JAQC` | [View](https://stellar.expert/explorer/testnet/account/GBTCO5WSTBEMWTLI7CXNDMFHJV7NTIPIAHTPRRNW3LC5HDNZI6M5JAQC) | npalande2106@gmail.com |
+| 13 | `GBYMUMMMSV5TZSJBFL4XKIU5YZ2QGZ4Q7UXUVKITHKAB7GE7DF7GHBZW` | [View](https://stellar.expert/explorer/testnet/account/GBYMUMMMSV5TZSJBFL4XKIU5YZ2QGZ4Q7UXUVKITHKAB7GE7DF7GHBZW) | mrameen330@gmail.com |
+| 14 | `GBP7DJTWL5EK5LITIHMKQD5F7HQB2P66B25XKCYZFUHOXAHQQ34OL4CW` | [View](https://stellar.expert/explorer/testnet/account/GBP7DJTWL5EK5LITIHMKQD5F7HQB2P66B25XKCYZFUHOXAHQQ34OL4CW) | ndkindia09@gmail.com |
+| 15 | `GDDNBMV47TIW77DFKLD7YVAWXEKAAZL4YVMXHIR5KVCN45TPA3T6M4VZ` | [View](https://stellar.expert/explorer/testnet/account/GDDNBMV47TIW77DFKLD7YVAWXEKAAZL4YVMXHIR5KVCN45TPA3T6M4VZ) | paramiteducation@gmail.com |
+| 16 | `GBROW5BI5VDRZ4ZKO432LAPTTDODYQCJQXTCUXAEBWGTPG7JIGLVB5M3` | [View](https://stellar.expert/explorer/testnet/account/GBROW5BI5VDRZ4ZKO432LAPTTDODYQCJQXTCUXAEBWGTPG7JIGLVB5M3) | sanskrutichavan1107@gmail.com |
+| 17 | `GCPB676PALIONHBTQUEQ3FOAXYAAQ4ADMBMDLGVUGZNWXPYZROOX4TP4` | [View](https://stellar.expert/explorer/testnet/account/GCPB676PALIONHBTQUEQ3FOAXYAAQ4ADMBMDLGVUGZNWXPYZROOX4TP4) | anjaliprasad9581@gmail.com |
+| 18 | `GDSDCTRF7LK4DDGYWFWKFNXC7C4E5R2QRBXO6F2YOLPNOPSDUOVUDMJK` | [View](https://stellar.expert/explorer/testnet/account/GDSDCTRF7LK4DDGYWFWKFNXC7C4E5R2QRBXO6F2YOLPNOPSDUOVUDMJK) | nikitabiradar300@gmail.com |
+| 19 | `GAD7C7CE3IOFPMX4SNLVBR4ORTXKLWKOBEVJ6M5X6SZJIDMP6XYGXJXW` | [View](https://stellar.expert/explorer/testnet/account/GAD7C7CE3IOFPMX4SNLVBR4ORTXKLWKOBEVJ6M5X6SZJIDMP6XYGXJXW) | tadtanmay3@gmail.com |
+| 20 | `GDL2GCIJL7BIGQLOZ53LNA37CGQ2KJBDG6PCVD3NCJCFQ5CVP3OAUMZW` | [View](https://stellar.expert/explorer/testnet/account/GDL2GCIJL7BIGQLOZ53LNA37CGQ2KJBDG6PCVD3NCJCFQ5CVP3OAUMZW) | shingaresiddhi85@gmail.com |
+| 21 | `GB7VBINQ6WA2CFAHTKNHI2OCJJGEMU2ZPDCYXVAQUSJLQUVZJEVZF5B3` | [View](https://stellar.expert/explorer/testnet/account/GB7VBINQ6WA2CFAHTKNHI2OCJJGEMU2ZPDCYXVAQUSJLQUVZJEVZF5B3) | shrimay2006@gmail.com |
+| 22 | `GDHQQYUWO3QP6L44Y6CS4BRI2LJ45P2OPXZVWMJMHOKXN4JS5IK5ZBH2` | [View](https://stellar.expert/explorer/testnet/account/GDHQQYUWO3QP6L44Y6CS4BRI2LJ45P2OPXZVWMJMHOKXN4JS5IK5ZBH2) | ayushbagate644@gmail.com |
+| 23 | `GBBM5J4FHJUFTRVEFTLBFOTLFUPVIQHIAGRXYGJ6R7TDTPGIQAV3KUBQ` | [View](https://stellar.expert/explorer/testnet/account/GBBM5J4FHJUFTRVEFTLBFOTLFUPVIQHIAGRXYGJ6R7TDTPGIQAV3KUBQ) | pawarsamruddhi78@gmail.com |
+| 24 | `GDS5B7SPGZTF5UQHPS4W5MD4MQ5ZCEUW6M5APJSYX2I5A7CMK4L5E3EY` | [View](https://stellar.expert/explorer/testnet/account/GDS5B7SPGZTF5UQHPS4W5MD4MQ5ZCEUW6M5APJSYX2I5A7CMK4L5E3EY) | shetesakshi927@gmail.com |
+
+
 
 > All addresses are on **Stellar Testnet**. You can verify transactions at [stellar.expert/explorer/testnet](https://stellar.expert/explorer/testnet).
 
@@ -267,14 +287,60 @@ https://docs.google.com/spreadsheets/d/e/2PACX-1vRhZwDws89-sNGKGNdCNaYpNcOtZtE6C
 ---
 ## Advanced Feature
 
-### AI Financial Analysis & Advisor: AI-powered daily savings and smart budgeting companion designed for students and young earners to build consistent financial habits.
+## 🚀 Advanced Feature 1: AI Financial Analysis Engine
+
+### Description
+Implements AI-driven financial insights using transaction data to generate personalized recommendations.
+
+### Implementation
+- Backend: Rust (Actix)
+- Logic: Aggregates transactions → runs analysis → stores in `analyses` collection
+
+### Code Reference
+/src/routes/analysis.rs  
+/src/services/analysis_service.rs  
+
+### API Endpoint
+GET /api/analysis/{wallet_address}
+
+### Proof
 <img width="469" height="817" alt="image" src="https://github.com/user-attachments/assets/bb19be08-0dec-45b9-8ec4-be68dcbb7e04" />
 
-### Piggy Bank — Savings Streak: Users can deposit daily savings on the blockchain, creating a consistent saving habit.
+## 🚀 Advanced Feature 2: Piggy Bank Goal System
+
+### Description
+Allows users to create savings goals and track progress with deposit/withdraw flows.
+
+### Implementation
+- Smart tracking using MongoDB aggregation
+- Integrated with transactions collection
+
+### Code Reference
+/src/routes/piggy_bank.rs  
+
+### API Endpoint
+POST /api/piggy-bank  
+GET /api/piggy-bank/{wallet}
+
+### Proof
 <img width="465" height="815" alt="image" src="https://github.com/user-attachments/assets/f50d19c5-3ecc-40e6-a6ed-3118f6527a18" />
 
 ---
 ## Data Indexing
+### Description
+
+Indexes are implemented to optimize query performance:
+
+- users.wallet_address (unique)
+- users.last_active
+- transactions.wallet_address + created_at
+- transactions.tx_type
+
+### Indexed Endpoint
+
+GET /api/transactions/:address
+
+This endpoint uses indexed fields for fast retrieval of user transactions.
 
 ### User data indexing
 <img width="1806" height="727" alt="Screenshot 2026-03-31 215308" src="https://github.com/user-attachments/assets/fe1639b4-eacf-41d8-b6a8-063c5d5b5ea6" />
@@ -319,6 +385,16 @@ Logs include timestamps, request origin, response status, and latency, providing
 Twitter Post:
 [https://x.com/SutarSudar56081/status/2039040383485956204?s=20](https://x.com/SutarSudar56081/status/2039040383485956204?s=20)
 
+---
+
+## Screenshot: metrics dashboard
+<img width="1900" height="1079" alt="image" src="https://github.com/user-attachments/assets/f02cf65f-bd3c-4941-9b87-90a5a7f7656d" />
+
+---
+## 🔐 Security Checklist
+
+View full security implementation:
+https://github.com/sudha16-sketc/finwise-AI_Advisor/security.md
 ---
 ## 🏗 Architecture
 
