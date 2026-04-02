@@ -191,32 +191,38 @@ This project uses native **XLM** on Stellar Testnet. No custom token has been de
 
 The following wallet addresses have interacted with the FinWise platform and are verifiable on the Stellar Testnet Explorer.
 
-| # | Wallet Address | Explorer Link | User Email |
-|---|---|---|---|
-| 1 | `GCDCQIYZ7N5M4ND625BK7FGGGANTJJDW5KFFUMIWEOOYCIR27WA7ZT6M` | [View](https://stellar.expert/explorer/testnet/account/GCDCQIYZ7N5M4ND625BK7FGGGANTJJDW5KFFUMIWEOOYCIR27WA7ZT6M) | deepakgupta4142434445464748@gmail.com |
-| 2 | `GDD5YF3VBRFACXBEOL572U4BOHUK2XAYVQ33H56SBMDSJSQX4ICAUKLO` | [View](https://stellar.expert/explorer/testnet/account/GDD5YF3VBRFACXBEOL572U4BOHUK2XAYVQ33H56SBMDSJSQX4ICAUKLO) | sutarsudarshan621@gmail.com |
-| 3 | `GC3U52PVKJ33U424KGFKGCDPVBJGFDOANKAOEFBPT5BUDSMVJXVMXZWG` | [View](https://stellar.expert/explorer/testnet/account/GC3U52PVKJ33U424KGFKGCDPVBJGFDOANKAOEFBPT5BUDSMVJXVMXZWG) | trupti.khandbhor22@gmail.com |
-| 4 | `GC6U7V64P7KTUSPFXO3WWU6V7AYBRLRJW6PPRVQAL5YXHZM3HHTX2EP3` | [View](https://stellar.expert/explorer/testnet/account/GC6U7V64P7KTUSPFXO3WWU6V7AYBRLRJW6PPRVQAL5YXHZM3HHTX2EP3) | vg6494391@gmail.com |
-| 5 | `GDFNCO4KZN7VZJTCYWPJYQN2WJGKJY46PN2AR6FA2WB35YMU3Q2U6JQE` | [View](https://stellar.expert/explorer/testnet/account/GDFNCO4KZN7VZJTCYWPJYQN2WJGKJY46PN2AR6FA2WB35YMU3Q2U6JQE) | pratikshaspark12@gmail.com |
-| 6 | `GACUAJJ5XYAOHFRNASQU472IEZHMU5G37CLNPGKA7HK55MEFZV6ZJQ45` | [View](https://stellar.expert/explorer/testnet/account/GACUAJJ5XYAOHFRNASQU472IEZHMU5G37CLNPGKA7HK55MEFZV6ZJQ45) | vedmalkunaik@gmail.com |
-| 7 | `GBFP6DQ6V2TODBDCEFHO6R5NAX3FDPNSREKQBFQUZSY5FWJR3HXVQO6Q` | [View](https://stellar.expert/explorer/testnet/account/GBFP6DQ6V2TODBDCEFHO6R5NAX3FDPNSREKQBFQUZSY5FWJR3HXVQO6Q) | shrirammasalge8@gmail.com |
-| 8 | `GCATAASNFHODIKA4VTIEZHONZB3BGZJL42FXHHZ3VS6YKX2PCDIJ3LDY` | [View](https://stellar.expert/explorer/testnet/account/GCATAASNFHODIKA4VTIEZHONZB3BGZJL42FXHHZ3VS6YKX2PCDIJ3LDY) | harshaljagdale0296@gmail.com |
-| 9 | `GCWHSFPEKYG5OYYQT2M5VRRVM3LSCXACMBNKSZUTH7XCIUGQTGFDAYWD` | [View](https://stellar.expert/explorer/testnet/account/GCWHSFPEKYG5OYYQT2M5VRRVM3LSCXACMBNKSZUTH7XCIUGQTGFDAYWD) | nevsesamruddhi@gmail.com |
-| 10 | `GDE5TLWQDMJQI2YBSPN2GKKU5RUFPW7RYEML5JHCZRUKHHJCE6JGJRA5` | [View](https://stellar.expert/explorer/testnet/account/GDE5TLWQDMJQI2YBSPN2GKKU5RUFPW7RYEML5JHCZRUKHHJCE6JGJRA5) | walanjkavita60@gmail.com |
-| 11 | `GADY24FFOBCTVQJIBCP6OCX6QPVODAQM4IEMYUKS5VSVN564XQPSWXGY` | [View](https://stellar.expert/explorer/testnet/account/GADY24FFOBCTVQJIBCP6OCX6QPVODAQM4IEMYUKS5VSVN564XQPSWXGY) | shubhamgolekar62021@gmail.com |
-| 12 | `GBTCO5WSTBEMWTLI7CXNDMFHJV7NTIPIAHTPRRNW3LC5HDNZI6M5JAQC` | [View](https://stellar.expert/explorer/testnet/account/GBTCO5WSTBEMWTLI7CXNDMFHJV7NTIPIAHTPRRNW3LC5HDNZI6M5JAQC) | npalande2106@gmail.com |
-| 13 | `GBYMUMMMSV5TZSJBFL4XKIU5YZ2QGZ4Q7UXUVKITHKAB7GE7DF7GHBZW` | [View](https://stellar.expert/explorer/testnet/account/GBYMUMMMSV5TZSJBFL4XKIU5YZ2QGZ4Q7UXUVKITHKAB7GE7DF7GHBZW) | mrameen330@gmail.com |
-| 14 | `GBP7DJTWL5EK5LITIHMKQD5F7HQB2P66B25XKCYZFUHOXAHQQ34OL4CW` | [View](https://stellar.expert/explorer/testnet/account/GBP7DJTWL5EK5LITIHMKQD5F7HQB2P66B25XKCYZFUHOXAHQQ34OL4CW) | ndkindia09@gmail.com |
-| 15 | `GDDNBMV47TIW77DFKLD7YVAWXEKAAZL4YVMXHIR5KVCN45TPA3T6M4VZ` | [View](https://stellar.expert/explorer/testnet/account/GDDNBMV47TIW77DFKLD7YVAWXEKAAZL4YVMXHIR5KVCN45TPA3T6M4VZ) | paramiteducation@gmail.com |
-| 16 | `GBROW5BI5VDRZ4ZKO432LAPTTDODYQCJQXTCUXAEBWGTPG7JIGLVB5M3` | [View](https://stellar.expert/explorer/testnet/account/GBROW5BI5VDRZ4ZKO432LAPTTDODYQCJQXTCUXAEBWGTPG7JIGLVB5M3) | sanskrutichavan1107@gmail.com |
-| 17 | `GCPB676PALIONHBTQUEQ3FOAXYAAQ4ADMBMDLGVUGZNWXPYZROOX4TP4` | [View](https://stellar.expert/explorer/testnet/account/GCPB676PALIONHBTQUEQ3FOAXYAAQ4ADMBMDLGVUGZNWXPYZROOX4TP4) | anjaliprasad9581@gmail.com |
-| 18 | `GDSDCTRF7LK4DDGYWFWKFNXC7C4E5R2QRBXO6F2YOLPNOPSDUOVUDMJK` | [View](https://stellar.expert/explorer/testnet/account/GDSDCTRF7LK4DDGYWFWKFNXC7C4E5R2QRBXO6F2YOLPNOPSDUOVUDMJK) | nikitabiradar300@gmail.com |
-| 19 | `GAD7C7CE3IOFPMX4SNLVBR4ORTXKLWKOBEVJ6M5X6SZJIDMP6XYGXJXW` | [View](https://stellar.expert/explorer/testnet/account/GAD7C7CE3IOFPMX4SNLVBR4ORTXKLWKOBEVJ6M5X6SZJIDMP6XYGXJXW) | tadtanmay3@gmail.com |
-| 20 | `GDL2GCIJL7BIGQLOZ53LNA37CGQ2KJBDG6PCVD3NCJCFQ5CVP3OAUMZW` | [View](https://stellar.expert/explorer/testnet/account/GDL2GCIJL7BIGQLOZ53LNA37CGQ2KJBDG6PCVD3NCJCFQ5CVP3OAUMZW) | shingaresiddhi85@gmail.com |
-| 21 | `GB7VBINQ6WA2CFAHTKNHI2OCJJGEMU2ZPDCYXVAQUSJLQUVZJEVZF5B3` | [View](https://stellar.expert/explorer/testnet/account/GB7VBINQ6WA2CFAHTKNHI2OCJJGEMU2ZPDCYXVAQUSJLQUVZJEVZF5B3) | shrimay2006@gmail.com |
-| 22 | `GDHQQYUWO3QP6L44Y6CS4BRI2LJ45P2OPXZVWMJMHOKXN4JS5IK5ZBH2` | [View](https://stellar.expert/explorer/testnet/account/GDHQQYUWO3QP6L44Y6CS4BRI2LJ45P2OPXZVWMJMHOKXN4JS5IK5ZBH2) | ayushbagate644@gmail.com |
-| 23 | `GBBM5J4FHJUFTRVEFTLBFOTLFUPVIQHIAGRXYGJ6R7TDTPGIQAV3KUBQ` | [View](https://stellar.expert/explorer/testnet/account/GBBM5J4FHJUFTRVEFTLBFOTLFUPVIQHIAGRXYGJ6R7TDTPGIQAV3KUBQ) | pawarsamruddhi78@gmail.com |
-| 24 | `GDS5B7SPGZTF5UQHPS4W5MD4MQ5ZCEUW6M5APJSYX2I5A7CMK4L5E3EY` | [View](https://stellar.expert/explorer/testnet/account/GDS5B7SPGZTF5UQHPS4W5MD4MQ5ZCEUW6M5APJSYX2I5A7CMK4L5E3EY) | shetesakshi927@gmail.com |
+| # | Name | Email | Wallet Address | Rating | Feedback |
+|---|---|---|---|---|---|
+| 1 | deepak gupta | deepakgupta4142434445464748@gmail.com | GCDCQIYZ7N5M4ND625BK7FGGGANTJJDW5KFFUMIWEOOYCIR27WA7ZT6M |  | Sign-in works on desktop browsers but fails on mobile browsers. |
+| 2 | sudarshan | sutarsudarshan621@gmail.com | GDD5YF3VBRFACXBEOL572U4BOHUK2XAYVQ33H56SBMDSJSQX4ICAUKLO |  | Transaction history feature is very useful. |
+| 3 | trupti khandbhor | trupti.khandbhor22@gmail.com | GC3U52PVKJ33U424KGFKGCDPVBJGFDOANKAOEFBPT5BUDSMVJXVMXZWG |  | AI financial analysis feature is interesting and helpful. |
+| 4 | Vishal Gupta | vg6494391@gmail.com | GC6U7V64P7KTUSPFXO3WWU6V7AYBRLRJW6PPRVQAL5YXHZM3HHTX2EP3 |  | Dashboard loads slowly on first visit. |
+| 5 | Pratiksha Kalbhor | pratikshaspark12@gmail.com | GDFNCO4KZN7VZJTCYWPJYQN2WJGKJY46PN2AR6FA2WB35YMU3Q2U6JQE |  | Improve your send XML page UI; other features work well. |
+| 6 | VED MALKUNAIK | vedmalkunaik@gmail.com | GACUAJJ5XYAOHFRNASQU472IEZHMU5G37CLNPGKA7HK55MEFZV6ZJQ45 |  | Could not load dashboard. Google sign-in failed, but piggy bank and AI analysis work. |
+| 7 | SHRIRAM MASALGE | shrirammasalge8@gmail.com | GBFP6DQ6V2TODBDCEFHO6R5NAX3FDPNSREKQBFQUZSY5FWJR3HXVQO6Q |  | Works smoothly, no lag. Transaction view is good. |
+| 8 | Harshal Jagdale | harshaljagdale0296@gmail.com | GCATAASNFHODIKA4VTIEZHONZB3BGZJL42FXHHZ3VS6YKX2PCDIJ3LDY |  | Working well. |
+| 9 | Samruddhi Nevse | nevsesamruddhi@gmail.com | GCWHSFPEKYG5OYYQT2M5VRRVM3LSCXACMBNKSZUTH7XCIUGQTGFDAYWD |  | Piggy bank useful, but app is slow. |
+| 10 | Sejal Walanj | walanjkavita60@gmail.com | GDE5TLWQDMJQI2YBSPN2GKKU5RUFPW7RYEML5JHCZRUKHHJCE6JGJRA5 | 5 | It was good. |
+| 11 | Shubham Golekar | shubhamgolekar62021@gmail.com | GADY24FFOBCTVQJIBCP6OCX6QPVODAQM4IEMYUKS5VSVN564XQPSWXGY | 5 | Good. |
+| 12 | Nayan Palande | npalande2106@gmail.com | GBTCO5WSTBEMWTLI7CXNDMFHJV7NTIPIAHTPRRNW3LC5HDNZI6M5JAQC | 5 | Fast and efficient performance. |
+| 13 | ameen shaikh | mrameen330@gmail.com | GBYMUMMMSV5TZSJBFL4XKIU5YZ2QGZ4Q7UXUVKITHKAB7GE7DF7GHBZW | 4 | Nice useful app. |
+| 14 | Nirupam Karankale | ndkindia09@gmail.com | GBP7DJTWL5EK5LITIHMKQD5F7HQB2P66B25XKCYZFUHOXAHQQ34OL4CW | 5 | User friendly application. |
+| 15 | Param Jain | paramiteducation@gmail.com | GDDNBMV47TIW77DFKLD7YVAWXEKAAZL4YVMXHIR5KVCN45TPA3T6M4VZ | 5 | Nice app. |
+| 16 | Sanskruti chavan | sanskrutichavan1107@gmail.com | GBROW5BI5VDRZ4ZKO432LAPTTDODYQCJQXTCUXAEBWGTPG7JIGLVB5M3 | 5 | Useful application. |
+| 17 | Anjali Prasad | anjaliprasad9581@gmail.com | GCPB676PALIONHBTQUEQ3FOAXYAAQ4ADMBMDLGVUGZNWXPYZROOX4TP4 | 5 | Very nice working. |
+| 18 | Nikita Biradar | nikitabiradar300@gmail.com | GDSDCTRF7LK4DDGYWFWKFNXC7C4E5R2QRBXO6F2YOLPNOPSDUOVUDMJK | 4 | Nice app. |
+| 19 | Tanmay_13 | tadtanmay3@gmail.com | GAD7C7CE3IOFPMX4SNLVBR4ORTXKLWKOBEVJ6M5X6SZJIDMP6XYGXJXW | 5 | It was good. |
+| 20 | Siddhi | shingaresiddhi85@gmail.com | GAD7C7CE3IOFPMX4SNLVBR4ORTXKLWKOBEVJ6M5X6SZJIDMP6XYGXJXW | 4 | Needs contact email section. |
+| 21 | Shrimay Raut | shrimay2006@gmail.com | GB7VBINQ6WA2CFAHTKNHI2OCJJGEMU2ZPDCYXVAQUSJLQUVZJEVZF5B3 | 5 | Likes piggy bank feature. |
+| 22 | Ayush | ayushbagate644@gmail.com | GDHQQYUWO3QP6L44Y6CS4BRI2LJ45P2OPXZVWMJMHOKXN4JS5IK5ZBH2 | 5 | Very good experience. |
+| 23 | Samruddhi Pawar | pawarsamruddhi78@gmail.com | GBBM5J4FHJUFTRVEFTLBFOTLFUPVIQHIAGRXYGJ6R7TDTPGIQAV3KUBQ | 5 | Excellent application. |
+| 24 | sakshi | shetesakshi927@gmail.com | GBBM5J4FHJUFTRVEFTLBFOTLFUPVIQHIAGRXYGJ6R7TDTPGIQAV3KUBQ | 5 | Good concept, needs better UI, tutorials, and security features. |
+| 25 | Vaibhavi Agale | vaibhaviagale7799@gmail.com | GALWWEGHOMU5YODTZBVGPFP2OHCJH5VO3VKWNMW7ZNT6OECINVPQT7SQ | 5 | Overall great website. |
+| 26 | Kripa Jagtap | jagtapkripa@gmail.com | GB6DUUTSU4JTZ7XPC7PHUMVPWN5X27WRKND7Y257UD7LT37FZKXNESPA | 5 | Helpful but financial handling can improve. |
+| 27 | sangamnath sutar | sangamnath77@gmail.com | GCCVMWRX4RQOCS34MIVYRMB2MYPYEPZZEKOUXGRRZENOYRITYDNJ2V7M | 4 | Transactions failing in send section. |
+| 28 | Zeel Chauhan | chauhan.zeel2401@gmail.com | 0xD638EE93c3E1DcB62496f82FAA19b959990dF5E9 | 4 | Strong concept, clean UI, good potential. |
+| 29 | Mirabaksh Shaikh | mirabakshshaikh28@gmail.com | GBTWQI4SMLIZHOP2CUJXI66722MKUOBRUXTIVHUXUYQI2AQ7EGLGT6PT | 4 | Very nice. |
+| 30 | Rushikesh Gaiwal | rushikeshgaiwal66@gmail.com | GBXU3XKT5W66VJOTZBEINMAXQYGJ7HYNFWITQQ6VQKZBHDQ2EX5ACG2F | 5 | Good website. |
 
 
 
@@ -388,7 +394,8 @@ Twitter Post:
 ---
 
 ## Screenshot: metrics dashboard
-<img width="1900" height="1079" alt="image" src="https://github.com/user-attachments/assets/f02cf65f-bd3c-4941-9b87-90a5a7f7656d" />
+<img width="1901" height="926" alt="image" src="https://github.com/user-attachments/assets/5e37425a-deb2-4444-a457-d5863a3f8678" />
+
 
 ---
 ## 🔐 Security Checklist
