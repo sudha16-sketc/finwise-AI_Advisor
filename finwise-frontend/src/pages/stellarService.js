@@ -114,8 +114,6 @@ export const sendTransaction = async (sourcePublicKey, destinationAddress, amoun
 
     const response = await axios.post(`${BACKEND_API}/send`, {
       xdr: signed.signedTxXdr,
-      sender_address: sourcePublicKey,
-      amount: parseFloat(amount),
     });
 
     return response.data;
