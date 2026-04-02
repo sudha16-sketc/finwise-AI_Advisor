@@ -110,8 +110,8 @@ export const sendTransaction = async (sourcePublicKey, destinationAddress, amoun
       networkPassphrase: StellarSdk.Networks.TESTNET,
     });
 
-    // ✅ Grab token from wherever your auth stores it
-    const token = localStorage.getItem('token');
+    // ✅ Grab token from wherever your auth stores it (should match tokenStore in api.js)
+    const token = localStorage.getItem('auth_token');
 
     const response = await axios.post(
       `${BACKEND_API}/send`,
