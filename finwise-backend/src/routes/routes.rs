@@ -23,7 +23,9 @@ struct TransactionsResponse {
 
 #[derive(Deserialize)]
 pub struct SendTransactionRequest {
-    xdr: String,
+    pub xdr: String,
+    pub sender_address: String,
+    pub amount: Option<f64>,
 }
 
 #[derive(Serialize)]
@@ -110,6 +112,7 @@ pub async fn get_transactions(
 /// POST /api/send
 /// Protected — requires valid JWT.
 pub async fn send_transaction(
+    db: web::Data<crate::db::Database>,
     _auth: AuthUser,
     req: web::Json<SendTransactionRequest>,
 ) -> impl Responder {
@@ -123,12 +126,23 @@ pub async fn send_transaction(
     }
 
     match stellar::submit_transaction(&req.xdr).await {
-        Ok(result) => HttpResponse::Ok().json(SendTransactionResponse {
-            hash: result.hash,
-            ledger: result.ledger,
-            success: true,
-            message: "Transaction submitted successfully".to_string(),
-        }),
+        Ok(result) => {
+            // Log transaction in DB
+            if let Err(e) = crate::services::log_transaction(
+                &db,
+                &req.sender_address,
+                "send",
+                req.amount
+            ).await {
+                log::error!("Failed to log transaction: {}", e);
+            }
+            HttpResponse::Ok().json(SendTransactionResponse {
+                hash: result.hash,
+                ledger: result.ledger,
+                success: true,
+                message: "Transaction submitted successfully".to_string(),
+            })
+        },
         Err(e) => {
             log::error!("Transaction submission failed: {}", e);
             HttpResponse::InternalServerError().json(ErrorResponse {
