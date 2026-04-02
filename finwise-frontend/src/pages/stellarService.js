@@ -90,7 +90,6 @@ export const fetchBalanceDirect = async (publicKey) => {
  */
 export const sendTransaction = async (sourcePublicKey, destinationAddress, amount) => {
   try {
-    // Build transaction using Stellar SDK
     const sourceAccount = await server.loadAccount(sourcePublicKey);
     
     const transaction = new StellarSdk.TransactionBuilder(sourceAccount, {
@@ -107,23 +106,33 @@ export const sendTransaction = async (sourcePublicKey, destinationAddress, amoun
       .setTimeout(30)
       .build();
 
-    // Sign transaction with Freighter
     const signed = await signTransaction(transaction.toXDR(), {
       networkPassphrase: StellarSdk.Networks.TESTNET,
     });
 
-    const response = await axios.post(`${BACKEND_API}/send`, {
-      xdr: signed.signedTxXdr,
-    });
+    // ✅ Grab token from wherever your auth stores it
+    const token = localStorage.getItem('token');
+
+    const response = await axios.post(
+      `${BACKEND_API}/send`,
+      {
+        xdr: signed.signedTxXdr,
+        sender_address: sourcePublicKey,
+        amount: parseFloat(amount),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,  // ✅ attach JWT
+        },
+      }
+    );
 
     return response.data;
   } catch (error) {
     console.error('Transaction failed:', error.response?.data || error);
-throw new Error(
-  error.response?.data?.message ||
-  'Transaction failed'
-);
-
+    throw new Error(
+      error.response?.data?.message || 'Transaction failed'
+    );
   }
 };
 
